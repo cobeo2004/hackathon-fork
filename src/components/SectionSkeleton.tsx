@@ -1,6 +1,3 @@
-// Static placeholder shown while a route's data-bound section streams in (PPR).
-// The skeleton prerenders into the static shell; the real section hydrates over it.
-
 export function SectionSkeleton({ title }: { title: string }) {
   return (
     <section className="scroll-mt-24">

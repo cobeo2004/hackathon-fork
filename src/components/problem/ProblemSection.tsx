@@ -12,10 +12,17 @@ export function ProblemSection() {
   const f = data.facts;
   return (
     <div>
-      <SectionLead step={1} eyebrow="The problem — real Victorian data" title="A decade-old solar boom is now hitting end-of-life" subtitle="Victoria installed hundreds of thousands of rooftop systems in 2011–2014. Those inverters are failing now — and there's no coordinated plan to find, recover, or recycle them." />
+      <SectionLead
+        step={1}
+        eyebrow="The problem — real Victorian data"
+        title="A decade-old solar boom is now hitting end-of-life"
+        subtitle="Victoria installed hundreds of thousands of rooftop systems in 2011–2014. Those inverters are failing now — and there's no coordinated plan to find, recover, or recycle them."
+      />
       <div className="grid gap-5 lg:grid-cols-5">
         <Card className="p-5 lg:col-span-3">
-          <div className="mb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-muted">Victorian rooftop solar — systems installed per year</div>
+          <div className="mb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
+            Victorian rooftop solar — systems installed per year
+          </div>
           <InstallWaveChart data={data.installs} height={262} />
           <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 font-mono text-[10px] uppercase tracking-wide text-muted">
             <Legend color="#cf3d29" text="12+ yrs — failing now" />

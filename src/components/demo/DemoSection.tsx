@@ -28,10 +28,14 @@ export function DemoSection() {
   // Live figures: while idle, preview the planned route totals so the cards are never
   // a confusing "0"; once running they follow the live totals and settle on the result.
   const preview = status === "idle";
-  const baseDist = latest?.baselineDist ?? (preview ? routes.baseline.total_distance_km : 0);
-  const optDist = latest?.optimizedDist ?? (preview ? routes.optimized.total_distance_km : 0);
-  const baseCost = latest?.baselineCost ?? (preview ? routes.baseline.total_cost_aud : 0);
-  const optCost = latest?.optimizedCost ?? (preview ? routes.optimized.total_cost_aud : 0);
+  const baseDist =
+    latest?.baselineDist ?? (preview ? routes.baseline.total_distance_km : 0);
+  const optDist =
+    latest?.optimizedDist ?? (preview ? routes.optimized.total_distance_km : 0);
+  const baseCost =
+    latest?.baselineCost ?? (preview ? routes.baseline.total_cost_aud : 0);
+  const optCost =
+    latest?.optimizedCost ?? (preview ? routes.optimized.total_cost_aud : 0);
 
   return (
     <div>
@@ -46,35 +50,56 @@ export function DemoSection() {
         <span className="mr-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em]">
           ◌ Data provenance
         </span>
-        Phase 1 uses real public datasets for postcode-level solar installation context, product
-        mix, and facility locations.{" "}
+        Phase 1 uses real public datasets for postcode-level solar installation context,
+        product mix, and facility locations.{" "}
         <strong>
           Site locations, risk scores, collection status, and mass are illustrative demo
-          scenarios — CER data only supports postcode-level install counts and age cohorts.
+          scenarios — CER data only supports postcode-level install counts and age
+          cohorts.
         </strong>{" "}
-        Facility locations are real. Solar-specific acceptance and daily processing capacity are
-        assumptions unless separately verified with the operator.
+        Facility locations are real. Solar-specific acceptance and daily processing
+        capacity are assumptions unless separately verified with the operator.
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-4 font-mono text-xs uppercase tracking-wide text-muted">
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: routes.baseline.color }} />
+            <span
+              className="inline-block h-3 w-3 rounded-full"
+              style={{ background: routes.baseline.color }}
+            />
             Reactive (today)
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: routes.optimized.color }} />
+            <span
+              className="inline-block h-3 w-3 rounded-full"
+              style={{ background: routes.optimized.color }}
+            />
             SolarCycle AI
           </span>
         </div>
         <div className="flex items-center gap-3">
           <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-            {status === "idle" ? "● Ready" : status === "running" ? "● Running…" : "● Complete"}
+            {status === "idle"
+              ? "● Ready"
+              : status === "running"
+                ? "● Running…"
+                : "● Complete"}
           </span>
           {status === "idle" ? (
-            <Button onClick={start} variant="success">▶ Run live demo</Button>
+            <Button onClick={start} variant="success">
+              ▶ Run live demo
+            </Button>
           ) : (
-            <Button onClick={() => { reset(); start(); }} variant="ghost">↻ Replay</Button>
+            <Button
+              onClick={() => {
+                reset();
+                start();
+              }}
+              variant="ghost"
+            >
+              ↻ Replay
+            </Button>
           )}
         </div>
       </div>
@@ -116,8 +141,10 @@ export function DemoSection() {
             </Card>
           ) : (
             <Card className="p-5 text-[13px] leading-relaxed text-muted">
-              Press <strong className="text-ink">Run live demo</strong> to dispatch both
-              trucks. Watch the blue route finish shorter and cheaper than the red one.
+              Press{" "}
+              <strong className="text-ink">Run live demo</strong> to dispatch both
+              trucks. Watch the blue route finish shorter and cheaper than the red
+              one.
             </Card>
           )}
         </div>

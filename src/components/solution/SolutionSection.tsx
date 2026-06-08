@@ -23,8 +23,12 @@ export function SolutionSection() {
         <Card className="p-5 lg:col-span-2">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <div className="font-display text-base font-extrabold tracking-tight text-ink">{featured.asset.site_name}</div>
-              <div className="font-mono text-[11px] uppercase tracking-wide text-muted">{featured.asset.lga} · inverter {featured.asset.serial_number}</div>
+              <div className="font-display text-base font-extrabold tracking-tight text-ink">
+                {featured.asset.site_name}
+              </div>
+              <div className="font-mono text-[11px] uppercase tracking-wide text-muted">
+                {featured.asset.lga} · inverter {featured.asset.serial_number}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <LiveHealthBadge />
@@ -32,11 +36,24 @@ export function SolutionSection() {
             </div>
           </div>
           <div className="mb-4 grid grid-cols-3 gap-3">
-            <Metric label="Risk score" value={featured.latestRisk.toFixed(2)} tone="risk" />
-            <Metric label="State of health" value={`${featured.asset.state_of_health}%`} />
-            <Metric label="Fails in" value={`~${featured.asset.estimated_failure_window_days} days`} tone="solar" />
+            <Metric
+              label="Risk score"
+              value={featured.latestRisk.toFixed(2)}
+              tone="risk"
+            />
+            <Metric
+              label="State of health"
+              value={`${featured.asset.state_of_health}%`}
+            />
+            <Metric
+              label="Fails in"
+              value={`~${featured.asset.estimated_failure_window_days} days`}
+              tone="solar"
+            />
           </div>
-          <div className="mb-4 rounded-lg border border-solar/30 bg-solar-soft px-3 py-2.5 text-[13px] font-medium text-[#8a4a06]">⚠️ {featured.breakingRiskMessage}</div>
+          <div className="mb-4 rounded-lg border border-solar/30 bg-solar-soft px-3 py-2.5 text-[13px] font-medium text-[#8a4a06]">
+            ⚠️ {featured.breakingRiskMessage}
+          </div>
           <HealthChart readings={featured.readings} />
         </Card>
         <Card className="flex flex-col p-5">
@@ -65,23 +82,53 @@ function AlgorithmStrip() {
       </div>
       <div className="grid gap-3 md:grid-cols-4">
         {ALGO_STEPS.map((a, i) => (
-          <div key={a.tag} className="flex flex-col rounded-lg border border-line bg-paper/60 p-4">
-            <div className="flex items-center gap-2"><span className="font-mono text-[10px] text-muted">0{i + 1}</span><span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-recover">{a.tag}</span></div>
-            <div className="mt-1.5 font-display text-[15px] font-extrabold tracking-tight text-ink">{a.name}</div>
+          <div
+            key={a.tag}
+            className="flex flex-col rounded-lg border border-line bg-paper/60 p-4"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] text-muted">0{i + 1}</span>
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-recover">
+                {a.tag}
+              </span>
+            </div>
+            <div className="mt-1.5 font-display text-[15px] font-extrabold tracking-tight text-ink">
+              {a.name}
+            </div>
             <div className="mt-1 text-[12px] leading-snug text-muted">{a.detail}</div>
-            <code className="mt-2 block rounded bg-ink/[0.04] px-2 py-1 font-mono text-[10px] leading-snug text-ink/70">{a.formula}</code>
+            <code className="mt-2 block rounded bg-ink/[0.04] px-2 py-1 font-mono text-[10px] leading-snug text-ink/70">
+              {a.formula}
+            </code>
           </div>
         ))}
       </div>
     </Card>
   );
 }
-function Metric({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "risk" | "solar"; }) {
-  const tones: Record<string, string> = { neutral: "text-ink", risk: "text-risk", solar: "text-solar" };
+function Metric({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: string;
+  tone?: "neutral" | "risk" | "solar";
+}) {
+  const tones: Record<string, string> = {
+    neutral: "text-ink",
+    risk: "text-risk",
+    solar: "text-solar",
+  };
   return (
     <div className="rounded-lg border border-line bg-paper/60 px-3 py-2.5">
-      <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">{label}</div>
-      <div className={`mt-1 font-display text-2xl font-extrabold tabular-nums ${tones[tone]}`}>{value}</div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
+        {label}
+      </div>
+      <div
+        className={`mt-1 font-display text-2xl font-extrabold tabular-nums ${tones[tone]}`}
+      >
+        {value}
+      </div>
     </div>
   );
 }
