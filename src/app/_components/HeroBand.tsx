@@ -40,10 +40,6 @@ function HeroInner() {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
 
-  // Whole-page progress → the fixed amber rail at the very top.
-  const { scrollYProgress: pageProgress } = useScroll();
-  const railScaleX = useSpring(pageProgress, { stiffness: 120, damping: 30 });
-
   // Hero-element progress drives the foreground lift + scroll-cue fade.
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -54,19 +50,18 @@ function HeroInner() {
   const contentOpacity = useTransform(smooth, [0, 0.7], [1, 0]);
   const cueOpacity = useTransform(smooth, [0, 0.2], [1, 0]);
 
+  // Two-tone split: on scroll-down the lead line drifts RIGHT and the amber accent
+  // line drifts LEFT (they part), both fading. Reverses on scroll-up (scrubbed).
+  const leadX = useTransform(smooth, [0, 1], ["0%", "55%"]);
+  const accentX = useTransform(smooth, [0, 1], ["0%", "-55%"]);
+  const headOpacity = useTransform(smooth, [0, 0.6], [1, 0]);
+
   // Background layers move at different speeds → depth.
   const glowY = useParallax(ref, 120);
   const gridY = useParallax(ref, 48);
 
   return (
     <>
-      {/* Page scroll-progress rail — pinned to the top of the viewport. */}
-      <m.div
-        aria-hidden
-        style={{ scaleX: reduce ? 0 : railScaleX }}
-        className="fixed inset-x-0 top-0 z-[2000] h-[3px] origin-left bg-solar"
-      />
-
       <section
         ref={ref}
         className="relative flex min-h-[88vh] flex-col justify-center overflow-hidden"
@@ -115,14 +110,22 @@ function HeroInner() {
           </m.p>
 
           <h1 className="mt-4 max-w-5xl font-display text-5xl font-extrabold leading-[1.02] tracking-[-0.03em] text-ink md:text-[76px]">
-            <Words words={HEAD_LEAD} reduce={!!reduce} startDelay={0.15} />{" "}
-            <span className="text-solar">
+            <m.span
+              style={reduce ? undefined : { x: leadX, opacity: headOpacity }}
+              className="block will-change-transform"
+            >
+              <Words words={HEAD_LEAD} reduce={!!reduce} startDelay={0.15} />
+            </m.span>
+            <m.span
+              style={reduce ? undefined : { x: accentX, opacity: headOpacity }}
+              className="block text-solar will-change-transform"
+            >
               <Words
                 words={HEAD_ACCENT}
                 reduce={!!reduce}
                 startDelay={0.15 + HEAD_LEAD.length * 0.05}
               />
-            </span>
+            </m.span>
           </h1>
 
           <m.p
