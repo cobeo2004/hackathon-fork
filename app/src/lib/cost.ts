@@ -4,14 +4,21 @@ import { COSTS } from "../data/demo";
 
 export interface CostInputs {
   distance_km: number;
+  duration_min: number;
   collection_stops: number;
   handling_per_stop: number;
 }
 
-/** route_cost = distance*cost_per_km + stops*handling + dispatch */
+/**
+ * Estimated route operating cost.
+ *
+ * Vehicle operating cost bundles fuel, maintenance, tyres, depreciation, and
+ * similar distance-linked assumptions. Driver labour is time-linked.
+ */
 export function routeCost(i: CostInputs): number {
   return (
-    i.distance_km * COSTS.vehicle_cost_per_km +
+    i.distance_km * COSTS.vehicle_operating_cost_per_km +
+    (i.duration_min / 60) * COSTS.driver_labour_cost_per_hour +
     i.collection_stops * i.handling_per_stop +
     COSTS.dispatch_per_route
   );
@@ -33,11 +40,13 @@ export function buildComparison(collectionStops = 4): Comparison {
   const optimizedDistance = 102;
   const baselineCost = routeCost({
     distance_km: baselineDistance,
+    duration_min: (baselineDistance / COSTS.fallback_average_speed_kmh) * 60,
     collection_stops: collectionStops,
     handling_per_stop: COSTS.baseline_handling_per_stop,
   });
   const optimizedCost = routeCost({
     distance_km: optimizedDistance,
+    duration_min: (optimizedDistance / COSTS.fallback_average_speed_kmh) * 60,
     collection_stops: collectionStops,
     handling_per_stop: COSTS.optimized_handling_per_stop,
   });

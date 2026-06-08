@@ -10,6 +10,7 @@
 
 import { NODES, SITES, VEHICLE } from "../data/demo";
 import { haversineKm, pathLengthKm, type LatLon } from "./geo";
+import { buildHeuristicRoute, type CandidateScore } from "./routeHeuristic";
 
 const byId = Object.fromEntries(
   [...SITES, ...NODES].map((p) => [
@@ -24,6 +25,7 @@ export interface OptimizerResult {
   distanceKm: number;
   collectedMassKg: number;
   skipped: { id: string; reason: string }[];
+  scores?: CandidateScore[];
 }
 
 interface SiteLite {
@@ -54,6 +56,7 @@ function summarize(
   strategy: OptimizerResult["strategy"],
   visited: SiteLite[],
   skipped: SiteLite[],
+  scores?: CandidateScore[],
 ): OptimizerResult {
   return {
     strategy,
@@ -61,6 +64,7 @@ function summarize(
     distanceKm: Math.round(routeDistance(visited) * 10) / 10,
     collectedMassKg: visited.reduce((sum, s) => sum + s.mass, 0),
     skipped: skipped.map((s) => ({ id: s.id, reason: "vehicle_capacity_exceeded" })),
+    scores,
   };
 }
 
@@ -123,7 +127,30 @@ export function baselineRoute(): OptimizerResult {
 
 /** Optimized: exact shortest route over the capacity-feasible sites. */
 export function optimizedRoute(): OptimizerResult {
-  const { kept, skipped } = selectWithinCapacity(eligibleSites());
+  const depot = NODES.find((n) => n.node_id === "DEPOT_1");
+  const destination = NODES.find((n) => n.node_id === "RC_001");
+  if (!depot || !destination) {
+    throw new Error("Demo logistics nodes are missing DEPOT_1 or RC_001");
+  }
+
+  // The heuristic selects capacity-feasible jobs by priority. The current small demo
+  // then still uses an exact TSP pass for final ordering, equivalent to Google waypoint
+  // optimization after the candidate set has been chosen.
+  const heuristic = buildHeuristicRoute(SITES, depot, destination, VEHICLE);
+  const kept = heuristic.orderedSites.map((s) => ({
+    id: s.site_id,
+    lat: s.lat,
+    lon: s.lon,
+    mass: s.total_mass_kg,
+    risk: s.risk_score,
+  }));
+  const skipped = heuristic.skipped.map(({ site }) => ({
+    id: site.site_id,
+    lat: site.lat,
+    lon: site.lon,
+    mass: site.total_mass_kg,
+    risk: site.risk_score,
+  }));
 
   let best: SiteLite[];
   if (kept.length <= 8) {
@@ -139,5 +166,5 @@ export function optimizedRoute(): OptimizerResult {
   } else {
     best = greedyNearestNeighbour(kept); // large-N fallback
   }
-  return summarize("optimized", best, skipped);
+  return summarize("optimized", best, skipped, heuristic.scores);
 }

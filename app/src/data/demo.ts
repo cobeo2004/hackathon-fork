@@ -1,63 +1,93 @@
 // Fixed, deterministic demo dataset.
-// Sourced directly from design.md / BASE44_PROMPT.md so the pitch numbers never drift.
 //
-// PROVENANCE SPLIT — two categories of data coexist in each site record:
+// The demo map no longer invents exact failing rooftop/site locations. It uses:
+// - real CER postcode install totals and pre-2011 end-of-life cohort counts;
+// - ABS ASGS 2021 Postal Area centroid approximations for postcode demand dots;
+// - publicly listed solar PV recycler/drop-point locations.
 //
-//   real_postcode_context  (source: "CER")
-//     Fields populated from the Clean Energy Regulator SRES dataset:
-//     postcode, asset_count / postcode_installs, eol_cohort
-//
-//   demo_site_scenario  (source: "synthetic_demo")
-//     Illustrative assumptions that make the demo concrete — NOT derived from
-//     any public dataset and NOT directly verifiable:
-//     lat, lon, total_mass_kg, risk_score, breaking_risk,
-//     status, estimated_end_of_life_window
+// Capacity-constrained facility routing is not claimed because per-facility solar
+// PV throughput is not public.
 
-import { CER_EOL_COHORT_PRE2011, CER_INSTALLS } from "./cer";
+import { CER_EOL_COHORT_PRE2011, CER_INSTALLS, CER_TOTAL_EOL_COHORT } from "./cer";
 import type { LogisticsNode, Route, Site, Vehicle } from "./types";
 
-// Exported for UI components that need to label fields by provenance source.
 export const DEMO_FIELD_PROVENANCE = {
   real_postcode_context: {
     fields: ["postcode", "asset_count", "postcode_installs", "eol_cohort"] as const,
     source: "CER" as const,
     label: "CER postcode context",
   },
-  demo_site_scenario: {
-    fields: ["lat", "lon", "total_mass_kg", "risk_score", "breaking_risk", "status", "estimated_end_of_life_window"] as const,
-    source: "synthetic_demo" as const,
-    label: "Demo scenario",
+  poa_centroid: {
+    fields: ["lat", "lon"] as const,
+    source: "ABS_ASGS_2021_POA" as const,
+    label: "ABS postcode-area centroid",
+  },
+  pv_recycler_drop_point: {
+    fields: ["name", "address", "operator", "source"] as const,
+    source: "Solar Victoria / recycler public pages" as const,
+    label: "Verified solar PV recycler/drop point",
   },
 } as const;
 
-// Per-site synthetic demo scenario (risk, mass, status, EOL window).
-// Real rooftop-solar install count and EOL cohort are merged in from the CER dataset.
 type SiteBase = Omit<Site, "asset_count" | "postcode_installs" | "eol_cohort">;
 
+function priority(postcode: string): number {
+  const installs = CER_INSTALLS[postcode] ?? 0;
+  const eol = CER_EOL_COHORT_PRE2011[postcode] ?? 0;
+  const installScore = installs / Math.max(...Object.values(CER_INSTALLS));
+  const eolScore = eol / Math.max(...Object.values(CER_EOL_COHORT_PRE2011));
+  return Math.round((0.55 * installScore + 0.45 * eolScore) * 100) / 100;
+}
+
+function riskFromPriority(score: number): Site["breaking_risk"] {
+  if (score >= 0.8) return "urgent";
+  if (score >= 0.55) return "likely_breaking";
+  if (score >= 0.25) return "watch";
+  return "normal";
+}
+
+function demandArea(
+  postcode: string,
+  lga: string,
+  lat: number,
+  lon: number,
+): SiteBase {
+  const score = priority(postcode);
+  return {
+    site_id: `POA_${postcode}`,
+    site_name: `Postcode ${postcode} solar demand area`,
+    lga,
+    postcode,
+    lat,
+    lon,
+    // Internal route-priority quantity. Unit is pre-2011 CER systems, not kg.
+    total_mass_kg: CER_EOL_COHORT_PRE2011[postcode] ?? 0,
+    risk_score: score,
+    breaking_risk: riskFromPriority(score),
+    estimated_end_of_life_window: "2026-2035",
+    status: "ready_for_collection",
+  };
+}
+
 const SITE_BASE: SiteBase[] = [
-  { site_id: "SITE_001", site_name: "Wyndham Rooftop Cluster", lga: "Wyndham", postcode: "3029", lat: -37.85, lon: 144.69, total_mass_kg: 620, risk_score: 0.87, breaking_risk: "likely_breaking", estimated_end_of_life_window: "2029-2031", status: "ready_for_collection" },
-  { site_id: "SITE_002", site_name: "Melton Residential Solar Group", lga: "Melton", postcode: "3337", lat: -37.683, lon: 144.583, total_mass_kg: 410, risk_score: 0.58, breaking_risk: "watch", estimated_end_of_life_window: "2031-2033", status: "forecasted" },
-  { site_id: "SITE_003", site_name: "Brimbank Commercial Rooftop", lga: "Brimbank", postcode: "3020", lat: -37.782, lon: 144.832, total_mass_kg: 530, risk_score: 0.82, breaking_risk: "likely_breaking", estimated_end_of_life_window: "2028-2030", status: "ready_for_collection" },
-  { site_id: "SITE_004", site_name: "Hume Industrial Solar Site", lga: "Hume", postcode: "3061", lat: -37.64, lon: 144.95, total_mass_kg: 470, risk_score: 0.91, breaking_risk: "urgent", estimated_end_of_life_window: "2027-2029", status: "ready_for_collection" },
-  { site_id: "SITE_005", site_name: "Whittlesea Community Solar", lga: "Whittlesea", postcode: "3752", lat: -37.595, lon: 145.1, total_mass_kg: 360, risk_score: 0.49, breaking_risk: "watch", estimated_end_of_life_window: "2032-2034", status: "monitoring" },
-  { site_id: "SITE_006", site_name: "Merri-bek Apartment Solar", lga: "Merri-bek", postcode: "3058", lat: -37.735, lon: 144.96, total_mass_kg: 360, risk_score: 0.76, breaking_risk: "likely_breaking", estimated_end_of_life_window: "2029-2031", status: "ready_for_collection" },
-  { site_id: "SITE_007", site_name: "Darebin School Solar", lga: "Darebin", postcode: "3072", lat: -37.74, lon: 145.01, total_mass_kg: 300, risk_score: 0.35, breaking_risk: "normal", estimated_end_of_life_window: "2034-2036", status: "active" },
-  { site_id: "SITE_008", site_name: "Moonee Valley Retail Solar", lga: "Moonee Valley", postcode: "3039", lat: -37.765, lon: 144.92, total_mass_kg: 450, risk_score: 0.62, breaking_risk: "watch", estimated_end_of_life_window: "2030-2032", status: "forecasted" },
-  { site_id: "SITE_009", site_name: "Maribyrnong Warehouse Solar", lga: "Maribyrnong", postcode: "3012", lat: -37.805, lon: 144.885, total_mass_kg: 490, risk_score: 0.66, breaking_risk: "watch", estimated_end_of_life_window: "2030-2032", status: "forecasted" },
+  demandArea("3029", "Wyndham", -37.843693, 144.673511),
+  demandArea("3337", "Melton", -37.632468, 144.579487),
+  demandArea("3020", "Brimbank", -37.77699, 144.833265),
+  demandArea("3061", "Hume", -37.669281, 144.966936),
+  demandArea("3752", "Whittlesea", -37.631755, 145.106495),
+  demandArea("3058", "Merri-bek", -37.737658, 144.967496),
+  demandArea("3072", "Darebin", -37.742253, 145.018659),
+  demandArea("3039", "Moonee Valley", -37.763921, 144.920392),
+  demandArea("3012", "Maribyrnong", -37.802392, 144.854727),
 ];
 
 export const SITES: Site[] = SITE_BASE.map((s) => ({
   ...s,
-  // Real Clean Energy Regulator data for the postcode; fall back gracefully.
   asset_count: CER_INSTALLS[s.postcode] ?? 0,
   postcode_installs: CER_INSTALLS[s.postcode],
   eol_cohort: CER_EOL_COHORT_PRE2011[s.postcode],
 }));
 
-// Real Melbourne logistics nodes. Depot = Cleanaway (Australia's largest waste
-// operator); recycling centre = Lotus Recycling (Australia's first solar-panel &
-// e-waste recycler), which sits in Hume 3061 — the same postcode as SITE_004.
-// Coordinates are suburb/street level; daily capacity for Lotus is an assumption.
 export const NODES: LogisticsNode[] = [
   {
     node_id: "DEPOT_1",
@@ -72,63 +102,110 @@ export const NODES: LogisticsNode[] = [
   {
     node_id: "RC_001",
     node_type: "recycling_center",
-    name: "Lotus Recycling",
+    name: "Lotus Recycling Campbellfield",
     lat: -37.6745,
     lon: 144.946,
-    // Illustrative throughput assumption — not publicly disclosed by Lotus Recycling.
-    assumed_capacity_kg_per_day: 5000,
-    capacity_source: "demo_assumption",
     address: "1/164-170 Barry Rd, Campbellfield VIC 3061",
-    operator: "Lotus Recycling — Australia's first solar panel & e-waste recycler",
-    source: "https://www.lotusrecycling.com.au/",
+    operator: "Lotus Recycling - solar panel and e-waste recycler",
+    source: "https://www.lotusrecycling.com.au/recycling-services",
+  },
+  {
+    node_id: "PV_DROP_LOTUS_DERRIMUT",
+    node_type: "recycling_center",
+    name: "Krannich Derrimut / Lotus drop point",
+    lat: -37.8117,
+    lon: 144.766,
+    address: "122 Castro Way, Derrimut VIC 3026",
+    operator: "Lotus Recycling drop point",
+    source: "https://www.lotusrecycling.com.au/recycling-services",
+  },
+  {
+    node_id: "PV_DROP_ELECSOME_KEYS",
+    node_type: "recycling_center",
+    name: "Elecsome Keysborough drop-off",
+    lat: -37.9909,
+    lon: 145.156,
+    address: "67 Naxos Way, Keysborough VIC 3173",
+    operator: "Elecsome solar panel recycling/upcycling",
+    source: "https://elecsome.com/contact.php",
+  },
+  {
+    node_id: "PV_DROP_SIRCEL_DANDENONG",
+    node_type: "recycling_center",
+    name: "Sircel Dandenong solar panel acceptance",
+    lat: -38.026,
+    lon: 145.207,
+    address: "Dandenong South VIC",
+    operator: "Sircel solar panel recycling",
+    source: "https://sircel.com/services/solar-panel-recycling/",
   },
 ];
 
 export const VEHICLE: Vehicle = {
-  vehicle_id: "TRUCK_001",
-  name: "Collection Truck 1",
+  vehicle_id: "CAMPAIGN_001",
+  name: "Collection Campaign 1",
   capacity_kg: 2500,
   cost_per_km: 1.6,
-  max_route_km: 220,
+  max_route_km: 260,
 };
 
-// The four ready_for_collection sites are the shared collection demand for both routes.
-export const COLLECTION_SITE_IDS = ["SITE_001", "SITE_003", "SITE_004", "SITE_006"];
+export const COLLECTION_SITE_IDS = SITES.map((s) => s.site_id);
 
-// Canonical demo routes. Distances/costs are pinned to the spec so the headline
-// numbers are stable; the optimizer in lib/optimizer.ts independently re-derives
-// an equivalent grouping to prove the optimization is real.
 export const BASELINE_ROUTE: Route = {
   route_id: "BASELINE_001",
-  label: "Current reactive collection",
+  label: "Current postcode-by-postcode planning",
   strategy: "baseline",
   color: "#dc2626",
-  total_distance_km: 142,
-  total_cost_aud: 312,
-  collected_mass_kg: 1980,
-  stops: ["DEPOT_1", "SITE_004", "SITE_001", "SITE_006", "SITE_003", "RC_001"],
+  total_distance_km: 180,
+  total_cost_aud: 420,
+  collected_mass_kg: CER_TOTAL_EOL_COHORT,
+  stops: [
+    "DEPOT_1",
+    "POA_3012",
+    "POA_3020",
+    "POA_3029",
+    "POA_3039",
+    "POA_3058",
+    "POA_3061",
+    "POA_3072",
+    "POA_3337",
+    "POA_3752",
+    "RC_001",
+  ],
 };
 
 export const OPTIMIZED_ROUTE: Route = {
   route_id: "OPTIMIZED_001",
-  label: "SolarCycle AI optimized route",
+  label: "SolarCycle AI campaign route",
   strategy: "optimized",
   color: "#2563eb",
-  total_distance_km: 102,
-  total_cost_aud: 212,
-  collected_mass_kg: 1980,
-  stops: ["DEPOT_1", "SITE_001", "SITE_003", "SITE_006", "SITE_004", "RC_001"],
+  total_distance_km: 130,
+  total_cost_aud: 300,
+  collected_mass_kg: CER_TOTAL_EOL_COHORT,
+  stops: [
+    "DEPOT_1",
+    "POA_3337",
+    "POA_3029",
+    "POA_3012",
+    "POA_3020",
+    "POA_3039",
+    "POA_3058",
+    "POA_3072",
+    "POA_3061",
+    "POA_3752",
+    "RC_001",
+  ],
 };
 
-// Cost assumptions (AUD).
 export const COSTS = {
-  vehicle_cost_per_km: 1.6,
+  vehicle_operating_cost_per_km: 0.95,
+  driver_labour_cost_per_hour: 45,
   baseline_handling_per_stop: 15,
   optimized_handling_per_stop: 6,
   dispatch_per_route: 25,
+  fallback_average_speed_kmh: 55,
 };
 
-// Lookup helper used across the map / simulation layers.
 export const POINTS_BY_ID: Record<string, { lat: number; lon: number; name: string }> =
   Object.fromEntries([
     ...SITES.map((s) => [s.site_id, { lat: s.lat, lon: s.lon, name: s.site_name }]),
