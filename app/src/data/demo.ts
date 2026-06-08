@@ -27,9 +27,29 @@ export const DEMO_FIELD_PROVENANCE = {
     source: "Solar Victoria / recycler public pages" as const,
     label: "Verified solar PV recycler/drop point",
   },
+  synthetic_site_estimates: {
+    fields: ["installed_capacity_kw", "eol_mass_kg_estimate", "telemetry_snapshot"] as const,
+    source: "synthetic" as const,
+    label: "Synthetically generated — not sourced from real sensor or facility data",
+    method:
+      "installed_capacity_kw = postcode_installs × 6.6 kW (ARENA/CER 2023 avg system size); " +
+      "eol_mass_kg_estimate = eol_cohort × 320 kg (16 panels × 20 kg/panel, industry avg); " +
+      "telemetry_snapshot values linearly interpolated from risk_score: " +
+      "temperature_c = 45 + score×40, thd = 2 + score×8, " +
+      "conversion_efficiency = 97 - score×15, ac_voltage = 230 + (score-0.5)×30",
+  },
 } as const;
 
 type SiteBase = Omit<Site, "asset_count" | "postcode_installs" | "eol_cohort">;
+
+function syntheticTelemetry(score: number): NonNullable<Site["telemetry_snapshot"]> {
+  return {
+    temperature_c: Math.round(45 + score * 40),
+    thd: Math.round((2 + score * 8) * 10) / 10,
+    conversion_efficiency: Math.round((97 - score * 15) * 10) / 10,
+    ac_voltage: Math.round(230 + (score - 0.5) * 30),
+  };
+}
 
 function priority(postcode: string): number {
   const installs = CER_INSTALLS[postcode] ?? 0;
@@ -53,6 +73,8 @@ function demandArea(
   lon: number,
 ): SiteBase {
   const score = priority(postcode);
+  const eolCohort = CER_EOL_COHORT_PRE2011[postcode] ?? 0;
+  const installs = CER_INSTALLS[postcode] ?? 0;
   return {
     site_id: `POA_${postcode}`,
     site_name: `Postcode ${postcode} solar demand area`,
@@ -60,12 +82,16 @@ function demandArea(
     postcode,
     lat,
     lon,
-    // Internal route-priority quantity. Unit is pre-2011 CER systems, not kg.
-    total_mass_kg: CER_EOL_COHORT_PRE2011[postcode] ?? 0,
+    // Routing weight: pre-2011 CER EOL cohort count (unit = systems, not kg).
+    total_mass_kg: eolCohort,
     risk_score: score,
     breaking_risk: riskFromPriority(score),
     estimated_end_of_life_window: "2026-2035",
     status: "ready_for_collection",
+    // --- Synthetically generated fields (see DEMO_FIELD_PROVENANCE.synthetic_site_estimates) ---
+    installed_capacity_kw: Math.round(installs * 6.6),
+    eol_mass_kg_estimate: eolCohort * 320,
+    telemetry_snapshot: syntheticTelemetry(score),
   };
 }
 

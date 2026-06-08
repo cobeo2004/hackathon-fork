@@ -25,6 +25,17 @@ export interface Site {
   postcode_installs?: number;
   /** Real pre-2011 install cohort nearing 25-year end-of-life (CER). */
   eol_cohort?: number;
+  /** Generated: postcode_installs × 6.6 kW avg system size (ARENA/CER 2023 avg). */
+  installed_capacity_kw?: number;
+  /** Generated: eol_cohort × 16 panels × 20 kg/panel. Illustrative recovery mass estimate. */
+  eol_mass_kg_estimate?: number;
+  /** Generated: single-reading telemetry snapshot, linearly scaled from risk_score. Not real sensor data. */
+  telemetry_snapshot?: {
+    temperature_c: number;
+    thd: number;
+    conversion_efficiency: number;
+    ac_voltage: number;
+  };
 }
 
 export type NodeType = "depot" | "recycling_center";
