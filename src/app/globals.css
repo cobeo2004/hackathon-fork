@@ -4,9 +4,9 @@
 /* "Solar Instrument Panel" theme — warm paper, near-black ink, solar-amber accent.
    Green is reserved for the recovery/"win" moment; red = risk; blue = optimized route. */
 @theme {
-  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   --color-paper: #ffffff;
   --color-panel: #ffffff;
