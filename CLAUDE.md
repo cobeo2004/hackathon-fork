@@ -31,6 +31,16 @@ Detailed engineering guidance (principles, workflow, implementation, architectur
 
 @docs/claude/index.md
 
+## Design
+
+Two design docs, two jobs — don't confuse them:
+
+- **`design.md`** — the *product/data* spec (scope, datasets, ML, roadmap). Context for *what* to build.
+- **`DESIGN-SYSTEM.md`** — the *visual* design system: color/type/spacing/motion tokens
+  (YAML front-matter) + component vocabulary + do's & don'ts. **Read it before any UI
+  work** — changing styles, adding components, building screens. Follow its tokens and
+  reuse the documented `ui.tsx` primitives rather than inventing new ones.
+
 ## Security
 
 - Treat all inputs as untrusted.

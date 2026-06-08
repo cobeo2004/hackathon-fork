@@ -32,7 +32,10 @@ npm run pipeline:validate
 src/
   app/                 # routes (RSC shells, thin)
     layout.tsx         # header nav (<Link>), fonts, <TRPCReactProvider>
-    page.tsx           # /          landing hero (fully static)
+    page.tsx           # /          landing — RSC shell (stays static/PPR)
+      _components/     #            motion client islands: Hero, StatCounters,
+                       #            StorySteps, ResultsBand, CtaBand (scroll reveals,
+                       #            count-up, parallax) — built with `motion`
     problem/           # /problem   prefetch stats.problem
       page.tsx         #            RSC shell (Suspense + prefetch)
       _components/     #            ProblemSection, InstallWaveChart (route-private)
