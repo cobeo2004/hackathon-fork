@@ -1,13 +1,26 @@
-import { HydrateClient } from "~/trpc/server";
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { HydrateClient, prefetch, trpc } from "~/trpc/server";
+import { SolutionSection } from "~/components/solution/SolutionSection";
+import { SectionSkeleton } from "~/components/SectionSkeleton";
 
 export default function SolutionPage() {
-  // TODO(Task 12): prefetch(trpc.routes.pair...) + prefetch(trpc.comparison.summary...)
+  return (
+    <Suspense fallback={<SectionSkeleton title="Solution" />}>
+      <SolutionData />
+    </Suspense>
+  );
+}
+
+async function SolutionData() {
+  await connection();
+  await Promise.all([
+    prefetch(trpc.health.featured.queryOptions()),
+    prefetch(trpc.passport.events.queryOptions()),
+  ]);
   return (
     <HydrateClient>
-      <section className="scroll-mt-24">
-        <h2 className="font-display text-2xl font-extrabold text-ink">Solution</h2>
-        {/* SolutionSection mounts here in Task 12 */}
-      </section>
+      <SolutionSection />
     </HydrateClient>
   );
 }

@@ -6,6 +6,7 @@ import { HealthChart } from "~/components/HealthChart";
 import { PassportPanel } from "~/components/PassportPanel";
 import { Pipeline } from "~/components/Pipeline";
 import { Card, DataNote, RiskBadge, SectionLead } from "~/components/ui";
+import { LiveHealthBadge } from "./LiveHealthBadge";
 
 export function SolutionSection() {
   const trpc = useTRPC();
@@ -25,7 +26,10 @@ export function SolutionSection() {
               <div className="font-display text-base font-extrabold tracking-tight text-ink">{featured.asset.site_name}</div>
               <div className="font-mono text-[11px] uppercase tracking-wide text-muted">{featured.asset.lga} · inverter {featured.asset.serial_number}</div>
             </div>
-            <RiskBadge risk={featured.breakingRisk} />
+            <div className="flex items-center gap-2">
+              <LiveHealthBadge />
+              <RiskBadge risk={featured.breakingRisk} />
+            </div>
           </div>
           <div className="mb-4 grid grid-cols-3 gap-3">
             <Metric label="Risk score" value={featured.latestRisk.toFixed(2)} tone="risk" />

@@ -1,13 +1,30 @@
-import { HydrateClient } from "~/trpc/server";
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { HydrateClient, prefetch, trpc } from "~/trpc/server";
+import { DemoSection } from "~/components/demo/DemoSection";
+import { SectionSkeleton } from "~/components/SectionSkeleton";
 
 export default function DemoPage() {
-  // TODO(Task 12): prefetch routes.pair + routes.nodes + comparison.summary
+  return (
+    <Suspense fallback={<SectionSkeleton title="Demo" />}>
+      <DemoData />
+    </Suspense>
+  );
+}
+
+async function DemoData() {
+  // Mark this hole dynamic so the React-Query dehydrate (which stamps Date.now)
+  // runs at request time; the static skeleton shell still prerenders (PPR).
+  await connection();
+  await Promise.all([
+    prefetch(trpc.routes.pair.queryOptions()),
+    prefetch(trpc.routes.nodes.queryOptions()),
+    prefetch(trpc.comparison.summary.queryOptions()),
+    prefetch(trpc.health.featured.queryOptions()),
+  ]);
   return (
     <HydrateClient>
-      <section className="scroll-mt-24">
-        <h2 className="font-display text-2xl font-extrabold text-ink">Demo</h2>
-        {/* DemoSection mounts here in Task 12 */}
-      </section>
+      <DemoSection />
     </HydrateClient>
   );
 }

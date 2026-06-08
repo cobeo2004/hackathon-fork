@@ -1,10 +1,9 @@
 import "server-only";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import {
-  dehydrate,
-  HydrationBoundary,
-  type FetchQueryOptions,
-} from "@tanstack/react-query";
-import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
+  createTRPCOptionsProxy,
+  type TRPCQueryOptions,
+} from "@trpc/tanstack-react-query";
 import { cache } from "react";
 import { createTRPCContext } from "~/server/trpc";
 import { appRouter } from "~/server/routers/_app";
@@ -32,7 +31,13 @@ export function HydrateClient(props: { children: React.ReactNode }) {
   );
 }
 
-export function prefetch(queryOptions: FetchQueryOptions) {
+// Typed against the tRPC option-proxy's queryOptions return shape so call sites
+// stay fully type-checked. Mirrors the tRPC server-components reference helper.
+// Returns the promise so multiple prefetches can be awaited together via
+// `Promise.all` (run concurrently, no waterfall).
+export function prefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
+  queryOptions: T,
+) {
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(queryOptions);
+  return queryClient.prefetchQuery(queryOptions);
 }
