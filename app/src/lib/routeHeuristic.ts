@@ -55,10 +55,12 @@ function facilityFitScore(facility: LogisticsNode): number {
 }
 
 function confidenceScore(site: Site): number {
-  let score = 0.35;
-  if (site.postcode_installs !== undefined) score += 0.25;
-  if (site.eol_cohort !== undefined) score += 0.2;
-  if (site.status === "ready_for_collection") score += 0.2;
+  let score = 0.1;
+  if (site.postcode_installs !== undefined) score += 0.2;      // real CER install count
+  if (site.eol_cohort !== undefined) score += 0.2;             // real CER EOL cohort
+  if (site.status === "ready_for_collection") score += 0.2;    // confirmed collection status
+  if (site.telemetry_snapshot !== undefined) score += 0.15;    // generated telemetry available
+  if (site.installed_capacity_kw !== undefined) score += 0.15; // capacity estimate available
   return clamp01(score);
 }
 
@@ -88,9 +90,11 @@ export function scoreRouteCandidate(
   },
 ): CandidateScore {
   const provider = context.provider ?? haversineMatrixProvider;
+  // Use eol_mass_kg_estimate when available (actual kg); fall back to total_mass_kg routing proxy.
+  const siteMass = site.eol_mass_kg_estimate ?? site.total_mass_kg;
   const parts = {
     risk: clamp01(site.risk_score),
-    mass: context.maxMassKg > 0 ? clamp01(site.total_mass_kg / context.maxMassKg) : 0,
+    mass: context.maxMassKg > 0 ? clamp01(siteMass / context.maxMassKg) : 0,
     age: ageUrgencyScore(site, context.currentYear),
     facilityFit: facilityFitScore(context.destination),
     routeEfficiency: routeEfficiencyScore(context.current, site, context.destination, provider),
@@ -127,7 +131,7 @@ export function buildHeuristicRoute(
   provider: RouteMatrixProvider = haversineMatrixProvider,
 ): { orderedSites: Site[]; skipped: { site: Site; reason: string }[]; scores: CandidateScore[] } {
   const candidates = sites.filter((s) => s.status === "ready_for_collection");
-  const maxMassKg = Math.max(0, ...candidates.map((s) => s.total_mass_kg));
+  const maxMassKg = Math.max(0, ...candidates.map((s) => s.eol_mass_kg_estimate ?? s.total_mass_kg));
   const remaining = [...candidates];
   const orderedSites: Site[] = [];
   const skipped: { site: Site; reason: string }[] = [];

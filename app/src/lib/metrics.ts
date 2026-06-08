@@ -28,7 +28,11 @@ export function dashboardMetrics() {
     (s) => windowStartYear(s.estimated_end_of_life_window) <= CURRENT_YEAR + 5,
   );
   const readyForCollection = SITES.filter((s) => s.status === "ready_for_collection");
-  const recyclableMassKg = readyForCollection.reduce((sum, s) => sum + s.total_mass_kg, 0);
+  // Use eol_mass_kg_estimate (generated) when available — actual kg vs the routing proxy count.
+  const recyclableMassKg = readyForCollection.reduce(
+    (sum, s) => sum + (s.eol_mass_kg_estimate ?? s.total_mass_kg),
+    0,
+  );
   const comparison = buildComparison(readyForCollection.length);
 
   return {
