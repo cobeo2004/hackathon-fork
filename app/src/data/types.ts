@@ -35,7 +35,9 @@ export interface LogisticsNode {
   name: string;
   lat: number;
   lon: number;
-  capacity_kg_per_day?: number;
+  /** Illustrative throughput assumption — not sourced from a public dataset. */
+  assumed_capacity_kg_per_day?: number;
+  capacity_source?: string;
   /** Real-world facility details (used in map popups). */
   address?: string;
   operator?: string;

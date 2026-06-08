@@ -138,11 +138,15 @@ export function MapView({
       }).addTo(map);
       marker.bindPopup(
         `<strong>${s.site_name}</strong><br/>${s.lga} · ${s.postcode}<br/>` +
+          `<span style="color:#f59e0b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">◌ Demo scenario</span><br/>` +
           `Risk ${s.risk_score} · ${s.breaking_risk.replace(/_/g, " ")}<br/>` +
           `Mass ${s.total_mass_kg} kg · EOL ${s.estimated_end_of_life_window}<br/>` +
           `Status: ${s.status.replace(/_/g, " ")}<br/>` +
           (s.postcode_installs
-            ? `<span style="color:#0ea5e9">${s.postcode_installs.toLocaleString()} rooftop installs · ${s.eol_cohort?.toLocaleString()} nearing EOL</span><br/><span style="color:#94a3b8;font-size:10px">Source: Clean Energy Regulator</span>`
+            ? `<hr style="margin:4px 0;border:none;border-top:1px solid #e2e8f0"/>` +
+              `<span style="color:#0ea5e9;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">● CER postcode context</span><br/>` +
+              `<span style="color:#0ea5e9">${s.postcode_installs.toLocaleString()} rooftop installs · ${s.eol_cohort?.toLocaleString()} nearing EOL</span><br/>` +
+              `<span style="color:#94a3b8;font-size:10px">Source: Clean Energy Regulator</span>`
             : ""),
       );
     }
@@ -157,6 +161,9 @@ export function MapView({
           `<strong>${n.name}</strong><br/>${n.node_type.replace(/_/g, " ")}` +
             (n.address ? `<br/>${n.address}` : "") +
             (n.operator ? `<br/><span style="color:#64748b">${n.operator}</span>` : "") +
+            (n.assumed_capacity_kg_per_day
+              ? `<br/><span style="color:#f59e0b;font-size:10px;font-weight:700;text-transform:uppercase">◌ Assumed demo capacity:</span> ${n.assumed_capacity_kg_per_day.toLocaleString()} kg/day`
+              : "") +
             (n.source
               ? `<br/><a href="${n.source}" target="_blank" rel="noreferrer" style="color:#0ea5e9;font-size:10px">source ↗</a>`
               : ""),

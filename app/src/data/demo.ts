@@ -1,12 +1,37 @@
 // Fixed, deterministic demo dataset.
 // Sourced directly from design.md / BASE44_PROMPT.md so the pitch numbers never drift.
+//
+// PROVENANCE SPLIT — two categories of data coexist in each site record:
+//
+//   real_postcode_context  (source: "CER")
+//     Fields populated from the Clean Energy Regulator SRES dataset:
+//     postcode, asset_count / postcode_installs, eol_cohort
+//
+//   demo_site_scenario  (source: "synthetic_demo")
+//     Illustrative assumptions that make the demo concrete — NOT derived from
+//     any public dataset and NOT directly verifiable:
+//     lat, lon, total_mass_kg, risk_score, breaking_risk,
+//     status, estimated_end_of_life_window
 
 import { CER_EOL_COHORT_PRE2011, CER_INSTALLS } from "./cer";
 import type { LogisticsNode, Route, Site, Vehicle } from "./types";
 
-// Per-site demo attributes (risk, mass, status, EOL window). The real rooftop-solar
-// install count and end-of-life cohort are merged in from the Clean Energy Regulator
-// dataset (see cer.ts), so `asset_count` and the EOL basis are genuine government data.
+// Exported for UI components that need to label fields by provenance source.
+export const DEMO_FIELD_PROVENANCE = {
+  real_postcode_context: {
+    fields: ["postcode", "asset_count", "postcode_installs", "eol_cohort"] as const,
+    source: "CER" as const,
+    label: "CER postcode context",
+  },
+  demo_site_scenario: {
+    fields: ["lat", "lon", "total_mass_kg", "risk_score", "breaking_risk", "status", "estimated_end_of_life_window"] as const,
+    source: "synthetic_demo" as const,
+    label: "Demo scenario",
+  },
+} as const;
+
+// Per-site synthetic demo scenario (risk, mass, status, EOL window).
+// Real rooftop-solar install count and EOL cohort are merged in from the CER dataset.
 type SiteBase = Omit<Site, "asset_count" | "postcode_installs" | "eol_cohort">;
 
 const SITE_BASE: SiteBase[] = [
@@ -50,7 +75,9 @@ export const NODES: LogisticsNode[] = [
     name: "Lotus Recycling",
     lat: -37.6745,
     lon: 144.946,
-    capacity_kg_per_day: 5000,
+    // Illustrative throughput assumption — not publicly disclosed by Lotus Recycling.
+    assumed_capacity_kg_per_day: 5000,
+    capacity_source: "demo_assumption",
     address: "1/164-170 Barry Rd, Campbellfield VIC 3061",
     operator: "Lotus Recycling — Australia's first solar panel & e-waste recycler",
     source: "https://www.lotusrecycling.com.au/",

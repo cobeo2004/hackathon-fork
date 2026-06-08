@@ -29,6 +29,20 @@ export function DemoSection({ sim }: { sim: Sim }) {
         subtitle="Both trucks recover the same 1,980 kg. Red is today's reactive route; blue is SolarCycle AI. Only the routing strategy changes."
       />
 
+      <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-relaxed text-amber-900">
+        <span className="mr-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em]">
+          ◌ Data provenance
+        </span>
+        Phase 1 uses real public datasets for postcode-level solar installation context, product
+        mix, and facility locations.{" "}
+        <strong>
+          Site locations, risk scores, collection status, and mass are illustrative demo
+          scenarios — CER data only supports postcode-level install counts and age cohorts.
+        </strong>{" "}
+        Facility locations are real. Solar-specific acceptance and daily processing capacity are
+        assumptions unless separately verified with the operator.
+      </div>
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-4 font-mono text-xs uppercase tracking-wide text-muted">
           <span className="inline-flex items-center gap-1.5">
@@ -99,9 +113,9 @@ export function DemoSection({ sim }: { sim: Sim }) {
       <CompareTable comparison={comparison} />
 
       <DataNote
-        real="depot & recycling centre are real Melbourne facilities (Cleanaway Laverton; Lotus Recycling, Campbellfield); the optimizer runs on their real coordinates"
-        illustrative="headline route distances (142/102 km) & costs are pinned to the spec target; cost rates are operator assumptions"
-        source="Cleanaway & Lotus Recycling (public sites); straight-line distances (OpenRouteService roads = future upgrade)"
+        real="depot & recycling centre locations (Cleanaway Laverton; Lotus Recycling, Campbellfield); postcode install counts & pre-2011 EOL cohort (Clean Energy Regulator)"
+        illustrative="site risk scores, mass estimates, status, EOL windows, collection windows, route distances/costs, and facility processing capacity — all illustrative demo assumptions"
+        source="Cleanaway & Lotus Recycling (public sites); CER SRES postcode data (to Apr 2026); straight-line distances (OpenRouteService roads = future upgrade)"
       />
     </div>
   );
