@@ -72,14 +72,20 @@ background:
   grid: "linear-gradient(rgba(26,22,17,0.016) 1px, transparent 1px) — 64px cells, both axes"
 
 motion:
-  easing: "cubic-bezier(0.16, 1, 0.3, 1)"   # the house curve — used by .reveal and all motion
-  reveal:    { duration: "0.6s", from: "opacity 0, translateY 24px", to: "opacity 1, translateY 0" }
-  load:      { duration: "0.7s", stagger: "0.08s" }   # .reveal load-in cadence
-  scroll:    { trigger: "whileInView", viewport: "{ once: true, margin: -80px }" }  # animate once
-  count-up:  { duration: "1.2s" }
-  parallax:  "background glow layer only; text never parallaxes"
-  reduced-motion: "MANDATORY — prefers-reduced-motion: reduce snaps to final state, no parallax/transform"
-  library: "motion (motion/react), client islands only — keep RSC shells static (PPR)"
+  model: scroll-linked              # the home page binds motion to scroll POSITION (scrubbed)
+  easing: "cubic-bezier(0.16, 1, 0.3, 1)"   # house curve for load-in & discrete transitions
+  scroll:
+    trigger: useScroll              # value tied to scroll position, NOT a one-shot whileInView
+    reversible: true                # plays forward on scroll-down, REVERSES on scroll-up
+    offset-reveal: '["start end", "end start"]'   # band enters from bottom, exits top (full pass)
+    offset-sticky: '["start start", "end end"]'   # pinned-traverse for sticky sections
+    smoothing: 'useSpring({ stiffness: 120, damping: 30 })'   # glide, not 1:1 jitter
+  sticky-scrub: "tall outer (min-h ~300vh) + inner `sticky top-0 h-screen` — progress drives content"
+  progress-rail: "fixed top bar, scaleX = page scrollYProgress, amber"
+  parallax: "layered backgrounds move at different speeds; subtle text drift OK, no large/jarring text motion"
+  load:    { duration: "0.7s", stagger: "0.08s" }   # the `.reveal` first-paint cadence (still used)
+  reduced-motion: "MANDATORY — prefers-reduced-motion: reduce feeds static literals (no scrub/parallax); content shown in final readable state"
+  library: "motion (motion/react) via LazyMotion+domAnimation, client islands only — RSC shells stay static (PPR)"
 
 view-transition:
   enabled: true   # experimental.viewTransition — <Link> nav cross-fades <main>
@@ -105,7 +111,7 @@ meaning.
 - Mono uppercase letter-spaced labels are the signature: they tag every number like a gauge.
 - Color carries fixed meaning: amber = brand/warning, **green = the win (reserved)**, red = risk, blue = optimized route.
 - Cards lift off the paper by shadow + hairline, not by a different fill (`{colors.panel}` == `{colors.paper}`).
-- Motion is purposeful: a staggered load-in, scroll-reveals that fire **once**, count-up numbers, one parallax glow — all reduced-motion-guarded.
+- Motion on the landing page is **scroll-linked (scrubbed)**: effects are bound to scroll position, so they play in on scroll-down and **reverse** on scroll-up — layered parallax, a sticky/pinned figures section, scrubbed bars, a progress rail. All spring-smoothed and reduced-motion-guarded.
 
 ## Colors
 
@@ -159,14 +165,34 @@ Documented from `src/components/ui.tsx` — reuse these; do not reinvent.
 Implemented with the **`motion`** library (`motion/react`) in `"use client"` islands
 only — route shells stay RSC so pages keep static prerender (PPR).
 
-- **House easing:** `{motion.easing}` for everything (matches the existing `.reveal` CSS keyframe).
-- **Load-in:** staggered reveal on first paint — `{motion.load}` (the `.reveal` class: opacity+translateY, `0.08s` stagger via `animation-delay`).
-- **Scroll reveal:** `whileInView` with `{motion.scroll.viewport}` — fires **once**, never re-triggers on scroll-up. From `opacity 0 / y 24px` to rest, `{motion.reveal.duration}`.
-- **Stagger:** parent `variants` + `staggerChildren: 0.08` for stat rows and card grids.
-- **Count-up:** numbers animate 0 → target over `{motion.count-up.duration}` when scrolled into view; format with `toLocaleString()`.
-- **Parallax:** only the background amber glow layer drifts on scroll (`useScroll`/`useTransform`). **Text never parallaxes.**
-- **Reduced motion:** **mandatory.** `useReducedMotion()` (and the CSS `prefers-reduced-motion: reduce` guard) snaps every animation to its final state — no transform, no parallax, full readability.
-- **View transitions:** `<Link>` navigation cross-fades `<main>` (`{view-transition.name}`); keep it — don't add per-element exit animations that fight it.
+The landing page uses **scroll-linked (scrubbed)** motion: values are bound to scroll
+position via `useScroll`, so animations play forward as you scroll down and **reverse
+as you scroll up**. This is intentional and reversible — distinct from a one-shot
+reveal. Inner pages (`/problem` `/solution` `/demo`) may keep calmer `whileInView`
+reveals.
+
+- **House easing / smoothing:** scrub MotionValues are spring-smoothed with
+  `useSpring({ stiffness: 120, damping: 30 })` so they glide rather than track 1:1.
+  Discrete transitions (hover, load-in) use the house easing `{motion.easing}`.
+- **Load-in:** first-paint staggered reveal via the `.reveal` CSS class
+  (`{motion.load}`, opacity + rise, `0.08s` stagger) — unchanged.
+- **Scrubbed reveal:** the workhorse. `useScroll({ target, offset: ["start end","end start"] })`
+  → map progress to `opacity` + `y` so a band fades/rises in as it arrives, holds while
+  centered, and eases back out near the top. Reverses on scroll-up. Centralized as
+  `useScrubbedReveal(ref)` in `src/app/_components/motion-features.tsx`.
+- **Parallax:** layered backgrounds (glow, grid) move at different speeds via
+  `useParallax(ref, distance)`. Subtle **text** drift on the hero is allowed; avoid
+  large or jarring text motion.
+- **Sticky-scrub section:** the stat centerpiece — a tall outer container
+  (`min-h ~300vh`) with an inner `sticky top-0 h-screen`; section progress
+  (`offset: ["start start","end end"]`) reveals figures one band at a time.
+- **Progress rail:** a fixed top bar whose `scaleX` = page `scrollYProgress` (amber).
+- **Reduced motion:** **mandatory.** `useReducedMotion()` makes every hook return
+  static literals (no scrub, no parallax) and the sticky band falls back to a plain
+  readable grid — full content, no movement. The CSS `prefers-reduced-motion` guard in
+  `globals.css` still covers view-transitions.
+- **View transitions:** `<Link>` navigation cross-fades `<main>` (`{view-transition.name}`);
+  keep it — don't add per-element exit animations that fight it.
 
 ## Do's and Don'ts
 
@@ -175,7 +201,8 @@ only — route shells stay RSC so pages keep static prerender (PPR).
 - Tag every number with a mono `{typography.label-mono}` label. Numbers without labels read as un-instrumented.
 - Reserve `{colors.recover}` green for genuine wins (savings, success). It is the payoff color.
 - Reuse `Card` / `Stat` / `Button` / `SectionLead` from `ui.tsx`.
-- Guard all motion with reduced-motion. Animate scroll reveals **once**.
+- Guard all motion with reduced-motion (hooks return static literals; sticky band → plain grid).
+- Bind landing motion to scroll position (`useScrubbedReveal` / `useParallax`); spring-smooth it; keep it reversible.
 - Keep route shells RSC; put motion in client islands.
 
 ### Don't
@@ -183,7 +210,8 @@ only — route shells stay RSC so pages keep static prerender (PPR).
 - Don't use green as a generic accent — it means "win" only.
 - Don't set body copy in mono, or labels in sans. The split is the signature.
 - Don't make `/` (or any data page's shell) a client component — it breaks PPR.
-- Don't parallax or heavily animate text; don't let animations re-fire on every scroll.
+- Don't animate text with large or jarring motion (subtle hero drift is fine); don't leave scrub values unsmoothed (always `useSpring`).
+- Don't ship motion without the reduced-motion fallback.
 - Don't distinguish cards by changing the fill hue — use the shadow + hairline.
 
 ## Iteration guide
@@ -192,4 +220,4 @@ only — route shells stay RSC so pages keep static prerender (PPR).
 2. New components default to `{radius.lg}` (cards) or `{radius.md}` (controls), `{colors.line}` hairline, `{elevation.card}` shadow.
 3. Use token references, never inline hex.
 4. When adding emphasis: bigger number/type before more color. Color is rationed.
-5. New motion: `whileInView once` + reduced-motion guard, house easing. No exceptions.
+5. New landing motion: scroll-linked (`useScrubbedReveal`/`useParallax`), spring-smoothed, reversible, reduced-motion-guarded. No exceptions.
