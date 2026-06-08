@@ -1,5 +1,6 @@
 import type { Comparison } from "~/lib/cost";
 import { Card } from "~/components/ui";
+import { formatNumber } from "~/lib/format";
 
 type Row = { metric: string; base: string; ours: string; delta: string };
 
@@ -41,8 +42,8 @@ export function CompareTable({
     },
     {
       metric: "Mass recovered",
-      base: `${comparison.collectedMassKg.toLocaleString()} kg`,
-      ours: `${comparison.collectedMassKg.toLocaleString()} kg`,
+      base: `${formatNumber(comparison.collectedMassKg)} kg`,
+      ours: `${formatNumber(comparison.collectedMassKg)} kg`,
       delta: "Same",
     },
     {

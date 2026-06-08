@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
 import { useSimulation } from "./useSimulation";
 import { Button, Card, DataNote, SectionLead } from "~/components/ui";
+import { formatNumber } from "~/lib/format";
 import { TruckStat } from "./TruckStat";
 import { CompareTable } from "./CompareTable";
 
@@ -136,7 +137,7 @@ export function DemoSection() {
               </div>
               <div className="mt-3 text-[13px] leading-snug text-[#2a5f43]">
                 −{comparison.distanceReductionPct.toFixed(0)}% distance · same{" "}
-                {comparison.collectedMassKg.toLocaleString()} kg recovered
+                {formatNumber(comparison.collectedMassKg)} kg recovered
               </div>
             </Card>
           ) : (

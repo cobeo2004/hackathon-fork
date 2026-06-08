@@ -3,6 +3,7 @@ import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { TRPCReactProvider } from "~/trpc/client";
+import Image from "next/image";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -48,9 +49,7 @@ export default function RootLayout({
             <header className="sticky top-0 z-[1000] border-b border-line bg-paper/85 backdrop-blur-md">
               <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
                 <Link href="/" className="flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-lg">
-                    🔆
-                  </span>
+                  <Image src="/logo-white.png" alt="SolarCycle AI" width={32} height={32} />
                   <div className="leading-none">
                     <div className="font-display text-[17px] font-extrabold tracking-tight text-ink">
                       SolarCycle<span className="text-solar"> AI</span>

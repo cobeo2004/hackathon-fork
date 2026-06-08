@@ -3,6 +3,7 @@
 // Data is supplied by the caller (sourced from tRPC `stats.problem`).
 
 import type { InstallYear } from "~/data/victoria";
+import { formatNumber } from "~/lib/format";
 
 const BAND_COLOR: Record<string, string> = {
   eol: "#cf3d29", // 12+ yrs — at end-of-life now
@@ -45,7 +46,7 @@ export function InstallWaveChart({
               rx={2}
               fill={BAND_COLOR[d.band]}
             >
-              <title>{`${d.year === 2010 ? "2001–2010" : d.year}: ${d.installs.toLocaleString()} systems`}</title>
+              <title>{`${d.year === 2010 ? "2001–2010" : d.year}: ${formatNumber(d.installs)} systems`}</title>
             </rect>
             <text
               x={x + barW / 2}

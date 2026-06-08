@@ -18,19 +18,20 @@ import {
 } from "motion/react";
 import { VIC_FACTS } from "~/data/victoria";
 import { buildComparison } from "~/lib/cost";
+import { formatNumber } from "~/lib/format";
 import { MotionProvider } from "./motion-features";
 
 const comparison = buildComparison(4);
 
 const FIGURES = [
   {
-    value: VIC_FACTS.totalSystems.toLocaleString(),
+    value: formatNumber(VIC_FACTS.totalSystems),
     label: "VIC systems installed",
     sub: "Clean Energy Regulator · 2001–2026",
     tone: "text-ink",
   },
   {
-    value: VIC_FACTS.eolNowSystems.toLocaleString(),
+    value: formatNumber(VIC_FACTS.eolNowSystems),
     label: "At end-of-life right now",
     sub: "installed ≤2014 · 12+ years old",
     tone: "text-risk",

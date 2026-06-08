@@ -1,10 +1,18 @@
 "use client";
 
-// Full-height hero. Two background layers (amber glow + faint grid) parallax at
-// different speeds, scrubbed to scroll — they drift as you scroll and drift back
-// when you scroll up. The headline lifts + fades on the same scroll progress. A
-// scroll cue fades out as you leave. A thin amber progress rail (top of viewport)
-// fills with whole-page scroll. All reversible; reduced-motion disables movement.
+// Full-height hero, styled as a LIVE INSTRUMENT PANEL (the product's identity).
+//
+// Layers, back to front:
+//  1. Faint grid + amber glow that PARALLAX on scroll (depth, reversible).
+//  2. A slow horizontal "telemetry sweep" line that crosses the panel on a loop.
+//  3. The headline reveals word-by-word on load (staggered rise), then the whole
+//     foreground lifts + fades on scroll. Scroll cue + page progress rail kept.
+//
+// The cursor-reactive amber spotlight is now PAGE-WIDE (see CursorGlow.tsx, mounted
+// from page.tsx) rather than scoped to this section.
+//
+// All motion honours prefers-reduced-motion: the sweep, parallax and scroll lift are
+// dropped and the content renders in its final static state.
 
 import Link from "next/link";
 import { useRef } from "react";
@@ -16,6 +24,9 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { MotionProvider, useParallax } from "./motion-features";
+
+const HEAD_LEAD = ["We", "predict", "which", "solar", "assets", "fail", "next —"];
+const HEAD_ACCENT = ["and", "recover", "them", "on", "the", "cheapest", "route."];
 
 export function HeroBand() {
   return (
@@ -60,7 +71,7 @@ function HeroInner() {
         ref={ref}
         className="relative flex min-h-[88vh] flex-col justify-center overflow-hidden"
       >
-        {/* Parallax glow layer. */}
+        {/* Parallax glow layer (static base glow). */}
         <m.div
           aria-hidden
           style={{ y: glowY }}
@@ -73,23 +84,72 @@ function HeroInner() {
           className="pointer-events-none absolute inset-0 opacity-[0.5] [background-image:linear-gradient(rgba(26,22,17,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(26,22,17,0.035)_1px,transparent_1px)] [background-size:54px_54px]"
         />
 
-        <m.div style={{ y: contentY, opacity: contentOpacity }} className="relative">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.22em] text-solar">
+        {/* Telemetry sweep — a thin amber line crossing the panel on a slow loop. */}
+        {!reduce && (
+          <m.div
+            aria-hidden
+            initial={{ x: "-20%", opacity: 0 }}
+            animate={{ x: "120%", opacity: [0, 0.7, 0.7, 0] }}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: "linear",
+              repeatDelay: 2,
+            }}
+            className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-solar/60 to-transparent"
+          />
+        )}
+
+        <m.div
+          style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
+          className="relative"
+        >
+          <m.p
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={reduce ? undefined : { opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="font-mono text-xs font-semibold uppercase tracking-[0.22em] text-solar"
+          >
+            <span className="mr-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-solar align-middle" />
             Solar lifecycle &amp; recovery · Melbourne west &amp; north
-          </p>
+          </m.p>
+
           <h1 className="mt-4 max-w-5xl font-display text-5xl font-extrabold leading-[1.02] tracking-[-0.03em] text-ink md:text-[76px]">
-            We predict which solar assets fail next —
+            <Words words={HEAD_LEAD} reduce={!!reduce} startDelay={0.15} />{" "}
             <span className="text-solar">
-              {" "}
-              and recover them on the cheapest route.
+              <Words
+                words={HEAD_ACCENT}
+                reduce={!!reduce}
+                startDelay={0.15 + HEAD_LEAD.length * 0.05}
+              />
             </span>
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+
+          <m.p
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={reduce ? undefined : { opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1],
+              delay: 0.15 + (HEAD_LEAD.length + HEAD_ACCENT.length) * 0.05,
+            }}
+            className="mt-6 max-w-2xl text-lg leading-relaxed text-muted"
+          >
             Aging panels and inverters fail unpredictably. Today collection is
             reactive and wasteful. SolarCycle AI turns health data into a plan — in
             three steps.
-          </p>
-          <nav className="mt-9 flex flex-wrap gap-3">
+          </m.p>
+
+          <m.nav
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={reduce ? undefined : { opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1],
+              delay: 0.25 + (HEAD_LEAD.length + HEAD_ACCENT.length) * 0.05,
+            }}
+            className="mt-9 flex flex-wrap gap-3"
+          >
             <Link
               href="/problem"
               className="rounded-lg bg-ink px-6 py-3 font-mono text-xs font-semibold uppercase tracking-wide text-paper transition-colors hover:bg-solar"
@@ -102,19 +162,54 @@ function HeroInner() {
             >
               Jump to the live demo
             </Link>
-          </nav>
+          </m.nav>
         </m.div>
 
         {/* Scroll cue — fades as the hero leaves. */}
         <m.div
           aria-hidden
-          style={{ opacity: cueOpacity }}
+          style={reduce ? undefined : { opacity: cueOpacity }}
           className="absolute inset-x-0 bottom-6 flex flex-col items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-muted"
         >
           Scroll
           <span className="h-9 w-[1px] bg-gradient-to-b from-solar to-transparent" />
         </m.div>
       </section>
+    </>
+  );
+}
+
+// Word-by-word staggered rise. Under reduced motion the words render plainly (no
+// per-word wrappers needed for movement, but kept for consistent spacing).
+function Words({
+  words,
+  reduce,
+  startDelay,
+}: {
+  words: readonly string[];
+  reduce: boolean;
+  startDelay: number;
+}) {
+  if (reduce) return <>{words.join(" ")}</>;
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={`${w}-${i}`} className="inline-block overflow-hidden align-bottom">
+          <m.span
+            initial={{ y: "100%" }}
+            animate={{ y: "0%" }}
+            transition={{
+              duration: 0.6,
+              ease: [0.16, 1, 0.3, 1],
+              delay: startDelay + i * 0.05,
+            }}
+            className="inline-block"
+          >
+            {w}
+            {i < words.length - 1 ? " " : ""}
+          </m.span>
+        </span>
+      ))}
     </>
   );
 }

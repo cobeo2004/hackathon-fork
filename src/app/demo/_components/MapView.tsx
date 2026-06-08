@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react";
 import { BASELINE_ROUTE, NODES, OPTIMIZED_ROUTE, POINTS_BY_ID, SITES } from "~/data/demo";
 import type { Route, Site } from "~/data/types";
 import { haversineKm } from "~/lib/geo";
+import { formatNumber } from "~/lib/format";
 import type { FrameState } from "./useSimulation";
 
 const STATUS_COLOR: Record<Site["status"], string> = {
@@ -151,7 +152,7 @@ export function MapView({
           (s.postcode_installs
             ? `<hr style="margin:4px 0;border:none;border-top:1px solid #e2e8f0"/>` +
               `<span style="color:#0ea5e9;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">● CER postcode context</span><br/>` +
-              `<span style="color:#0ea5e9">${s.postcode_installs.toLocaleString()} rooftop installs · ${s.eol_cohort?.toLocaleString()} nearing EOL</span><br/>` +
+              `<span style="color:#0ea5e9">${formatNumber(s.postcode_installs)} rooftop installs · ${s.eol_cohort != null ? formatNumber(s.eol_cohort) : "—"} nearing EOL</span><br/>` +
               `<span style="color:#94a3b8;font-size:10px">Source: Clean Energy Regulator</span>`
             : ""),
       );
@@ -168,7 +169,7 @@ export function MapView({
             (n.address ? `<br/>${n.address}` : "") +
             (n.operator ? `<br/><span style="color:#64748b">${n.operator}</span>` : "") +
             (n.assumed_capacity_kg_per_day
-              ? `<br/><span style="color:#f59e0b;font-size:10px;font-weight:700;text-transform:uppercase">◌ Assumed demo capacity:</span> ${n.assumed_capacity_kg_per_day.toLocaleString()} kg/day`
+              ? `<br/><span style="color:#f59e0b;font-size:10px;font-weight:700;text-transform:uppercase">◌ Assumed demo capacity:</span> ${formatNumber(n.assumed_capacity_kg_per_day)} kg/day`
               : "") +
             (n.source
               ? `<br/><a href="${n.source}" target="_blank" rel="noreferrer" style="color:#0ea5e9;font-size:10px">source ↗</a>`

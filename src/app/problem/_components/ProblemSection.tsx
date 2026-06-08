@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
 import { InstallWaveChart } from "./InstallWaveChart";
 import { Card, DataNote, SectionLead, Stat } from "~/components/ui";
+import { formatNumber } from "~/lib/format";
 
 export function ProblemSection() {
   const trpc = useTRPC();
@@ -32,7 +33,7 @@ export function ProblemSection() {
         </Card>
         <div className="lg:col-span-2">
           <Card className="flex h-full flex-col justify-between gap-5 p-6">
-            <Stat label="Rooftop systems in Victoria" value={f.totalSystems.toLocaleString()} sub={`~${f.vicShareOfNationalPct}% of every solar system in Australia`} tone="ink" />
+            <Stat label="Rooftop systems in Victoria" value={formatNumber(f.totalSystems)} sub={`~${f.vicShareOfNationalPct}% of every solar system in Australia`} tone="ink" />
             <div className="h-px bg-line" />
             <Stat label="Already 12+ years old" value={`${Math.round(f.eolNowSystems / 1000)}k`} sub="installed by 2014 — at inverter end-of-life right now" tone="risk" />
             <div className="h-px bg-line" />
