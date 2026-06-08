@@ -1,0 +1,9 @@
+# Dependencies and build output
+node_modules/
+dist/
+
+# Local/editor artifacts
+.DS_Store
+Thumbs.db
+~$*.xlsx
+*.tmp
