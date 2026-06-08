@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/* "Solar Instrument Panel" theme — warm paper, near-black ink, solar-amber accent.
+   Green is reserved for the recovery/"win" moment; red = risk; blue = optimized route. */
+@theme {
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #ffffff;
+  --color-panel: #ffffff;
+  --color-ink: #1a1611;
+  --color-muted: #6f675a;
+  --color-line: #e9e6e0;
+  --color-solar: #e07c08;
+  --color-solar-soft: #fbeccd;
+  --color-risk: #cf3d29;
+  --color-recover: #1d7a4d;
+  --color-route: #2563eb;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background-color: #ffffff;
+  /* White, but not flat: the faintest solar glow top-right + a whisper of grid. */
+  background-image:
+    radial-gradient(900px 520px at 95% -10%, rgba(224, 124, 8, 0.05), transparent 60%),
+    linear-gradient(to right, rgba(26, 22, 17, 0.016) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 22, 17, 0.016) 1px, transparent 1px);
+  background-size: auto, 64px 64px, 64px 64px;
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+}
+
+/* Staggered page-load reveal. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal {
+  opacity: 0;
+  animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Leaflet should inherit the paper, not pure white. */
+.leaflet-container {
+  background: #eef0ec;
+  font-family: var(--font-body);
+}
+
+/* Truck markers: colored discs that animate smoothly between position updates. */
+.truck-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+  transition: transform 0.08s linear;
+}
+
+/* Pulsing "focus" halo that follows the optimized (blue) truck during the demo. */
+.focus-ping {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.16);
+  border: 2px solid rgba(37, 99, 235, 0.55);
+  animation: focus-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes focus-ping {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
