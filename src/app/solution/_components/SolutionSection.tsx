@@ -2,9 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
-import { HealthChart } from "~/components/HealthChart";
-import { PassportPanel } from "~/components/PassportPanel";
-import { Pipeline } from "~/components/Pipeline";
+import { HealthChart } from "./HealthChart";
+import { PassportPanel } from "./PassportPanel";
+import { Pipeline } from "./Pipeline";
 import { Card, DataNote, RiskBadge, SectionLead } from "~/components/ui";
 import { LiveHealthBadge } from "./LiveHealthBadge";
 

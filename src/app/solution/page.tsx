@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { HydrateClient, prefetch, trpc } from "~/trpc/server";
-import { SolutionSection } from "~/components/solution/SolutionSection";
+import { SolutionSection } from "./_components/SolutionSection";
 import { SectionSkeleton } from "~/components/SectionSkeleton";
 
 export default function SolutionPage() {

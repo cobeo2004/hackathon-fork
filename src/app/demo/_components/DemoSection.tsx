@@ -3,12 +3,12 @@
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
-import { useSimulation } from "~/hooks/useSimulation";
+import { useSimulation } from "./useSimulation";
 import { Button, Card, DataNote, SectionLead } from "~/components/ui";
 import { TruckStat } from "./TruckStat";
 import { CompareTable } from "./CompareTable";
 
-const MapView = dynamic(() => import("~/components/MapView").then((m) => m.MapView), { ssr: false });
+const MapView = dynamic(() => import("./MapView").then((m) => m.MapView), { ssr: false });
 
 export function DemoSection() {
   const trpc = useTRPC();

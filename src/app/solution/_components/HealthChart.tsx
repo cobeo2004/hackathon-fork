@@ -5,7 +5,7 @@
 // Readings are supplied by the caller (sourced from tRPC `health.featured`).
 
 import type { HealthReading } from "~/data/types";
-import { LineChart, Legend, type Series } from "./LineChart";
+import { LineChart, Legend, type Series } from "~/components/LineChart";
 
 export function HealthChart({ readings }: { readings: HealthReading[] }) {
   const x = readings.map((_, i) => i);

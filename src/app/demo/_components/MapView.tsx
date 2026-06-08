@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 import { BASELINE_ROUTE, NODES, OPTIMIZED_ROUTE, POINTS_BY_ID, SITES } from "~/data/demo";
 import type { Route, Site } from "~/data/types";
 import { haversineKm } from "~/lib/geo";
-import type { FrameState } from "~/hooks/useSimulation";
+import type { FrameState } from "./useSimulation";
 
 const STATUS_COLOR: Record<Site["status"], string> = {
   ready_for_collection: "#dc2626",

@@ -3,7 +3,7 @@
 // Proves the realtime path: subscribes to the `health.live` tRPC SSE stream and
 // shows the latest risk tick. Until the first tick arrives it reads "connecting".
 
-import { useHealthStream } from "~/hooks/useHealthStream";
+import { useHealthStream } from "./useHealthStream";
 
 export function LiveHealthBadge() {
   const { ticks, status } = useHealthStream();

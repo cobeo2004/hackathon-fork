@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
-import { InstallWaveChart } from "~/components/InstallWaveChart";
+import { InstallWaveChart } from "./InstallWaveChart";
 import { Card, DataNote, SectionLead, Stat } from "~/components/ui";
 
 export function ProblemSection() {

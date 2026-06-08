@@ -33,9 +33,17 @@ src/
   app/                 # routes (RSC shells, thin)
     layout.tsx         # header nav (<Link>), fonts, <TRPCReactProvider>
     page.tsx           # /          landing hero (fully static)
-    problem/page.tsx   # /problem   prefetch stats.problem
-    solution/page.tsx  # /solution  prefetch health.featured + passport.events
-    demo/page.tsx      # /demo       prefetch routes + comparison + health
+    problem/           # /problem   prefetch stats.problem
+      page.tsx         #            RSC shell (Suspense + prefetch)
+      _components/     #            ProblemSection, InstallWaveChart (route-private)
+    solution/          # /solution  prefetch health.featured + passport.events
+      page.tsx
+      _components/     #            SolutionSection, HealthChart, PassportPanel,
+                       #            Pipeline, LiveHealthBadge, useHealthStream
+    demo/              # /demo      prefetch routes + comparison + health
+      page.tsx
+      _components/     #            DemoSection, MapView, CompareTable, TruckStat,
+                       #            useSimulation
     api/trpc/[trpc]/route.ts   # tRPC fetch handler (batch + SSE)
     globals.css
   server/              # tRPC server boundary
@@ -44,8 +52,8 @@ src/
     caller.ts          # RSC server caller
   trpc/                # client provider (splitLink: httpBatch + httpSubscription)
                        # + server option-proxy (createTRPCOptionsProxy) prefetch/hydrate
-  components/          # UI; per-route sections under problem/ solution/ demo/
-  hooks/               # useSimulation (RAF), useHealthStream (SSE)
+  components/          # SHARED UI only: ui (Card/Stat/…), SectionSkeleton, LineChart
+                       # (route-private components live in each route's _components/)
   data/  lib/          # deterministic mock data + calc — consumed ONLY by routers
 ```
 
