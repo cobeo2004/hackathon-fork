@@ -1,13 +1,11 @@
-import { HydrateClient } from "~/trpc/server";
+import { HydrateClient, prefetch, trpc } from "~/trpc/server";
+import { ProblemSection } from "~/components/problem/ProblemSection";
 
 export default function ProblemPage() {
-  // TODO(Task 12): prefetch(trpc.sites.list...) + prefetch(trpc.health.featured...)
+  prefetch(trpc.stats.problem.queryOptions());
   return (
     <HydrateClient>
-      <section className="scroll-mt-24">
-        <h2 className="font-display text-2xl font-extrabold text-ink">Problem</h2>
-        {/* ProblemSection mounts here in Task 12 */}
-      </section>
+      <ProblemSection />
     </HydrateClient>
   );
 }

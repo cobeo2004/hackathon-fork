@@ -1,7 +1,13 @@
 import { tracked } from "@trpc/server";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
-import { FEATURED_ASSET, HEALTH_SERIES } from "~/data/asset";
+import {
+  FEATURED_ASSET,
+  HEALTH_SERIES,
+  LATEST_BREAKING_RISK,
+  LATEST_RISK,
+} from "~/data/asset";
+import { breakingRiskMessage } from "~/lib/risk";
 
 export interface HealthTick {
   seq: number;
@@ -13,6 +19,12 @@ export const healthRouter = router({
   featured: publicProcedure.query(() => ({
     asset: FEATURED_ASSET,
     readings: HEALTH_SERIES,
+    latestRisk: LATEST_RISK,
+    breakingRisk: LATEST_BREAKING_RISK,
+    breakingRiskMessage: breakingRiskMessage(
+      LATEST_BREAKING_RISK,
+      FEATURED_ASSET.predicted_fault_type,
+    ),
   })),
 
   /**

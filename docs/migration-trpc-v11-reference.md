@@ -313,9 +313,9 @@ export function ProblemSection() {
 
 ## 10. SSE client hook — `src/hooks/useHealthStream.ts` (`'use client'`)
 
-Use `useSubscription` + `subscriptionOptions`. `onData` receives the PAYLOAD
-DIRECTLY (tracked id is unwrapped by the integration) — it is a `HealthTick`,
-NOT `{ id, data }`.
+Use `useSubscription` + `subscriptionOptions`. Because the server yields
+`tracked(id, payload)`, `onData` receives an ENVELOPE `{ id: string; data: HealthTick }`
+— read the payload off `envelope.data`.
 
 ```ts
 "use client";
