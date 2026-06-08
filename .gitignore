@@ -7,3 +7,6 @@ dist/
 Thumbs.db
 ~$*.xlsx
 *.tmp
+
+# Local screenshots/debug captures
+app/debug-*.png
