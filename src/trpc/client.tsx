@@ -17,10 +17,8 @@ export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 let browserQueryClient: ReturnType<typeof makeQueryClient> | undefined;
 function getQueryClient() {
   if (typeof window === "undefined") {
-    // Server: always a fresh client.
     return makeQueryClient();
   }
-  // Browser: reuse a single client across renders.
   return (browserQueryClient ??= makeQueryClient());
 }
 
@@ -34,7 +32,6 @@ export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
-        // Subscriptions stream over SSE; everything else batches over HTTP.
         splitLink({
           condition: (op) => op.type === "subscription",
           true: httpSubscriptionLink({ url: getUrl() }),

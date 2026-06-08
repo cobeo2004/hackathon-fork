@@ -10,7 +10,6 @@ import { createTRPCContext } from "~/server/trpc";
 import { appRouter } from "~/server/routers/_app";
 import { makeQueryClient } from "./query-client";
 
-// One query client per request.
 export const getQueryClient = cache(makeQueryClient);
 
 /**
