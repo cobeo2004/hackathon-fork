@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { TRPCReactProvider } from "~/trpc/client";
 import Image from "next/image";
+import { RouteTransition } from "./_components/RouteTransition";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -45,6 +46,8 @@ export default function RootLayout({
     >
       <body>
         <TRPCReactProvider>
+          {/* Direction-aware route slide-over (client island; PPR-safe). */}
+          <RouteTransition />
           <div className="min-h-full">
             <header className="sticky top-0 z-[1000] border-b border-line bg-paper/85 backdrop-blur-md">
               <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">

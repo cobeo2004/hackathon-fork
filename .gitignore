@@ -13,3 +13,6 @@ Thumbs.db
 
 .omc/
 docs/superpowers/
+
+# Build artifact (Node compile cache)
+node-compile-cache/
