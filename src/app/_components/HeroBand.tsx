@@ -58,7 +58,6 @@ function HeroInner() {
 
   // Background layers move at different speeds → depth.
   const glowY = useParallax(ref, 120);
-  const gridY = useParallax(ref, 48);
 
   return (
     <>
@@ -72,13 +71,6 @@ function HeroInner() {
           style={{ y: glowY }}
           className="pointer-events-none absolute -right-40 -top-32 h-[620px] w-[860px] rounded-full bg-[radial-gradient(closest-side,rgba(224,124,8,0.20),transparent)] blur-2xl"
         />
-        {/* Parallax grid layer (slower). */}
-        <m.div
-          aria-hidden
-          style={{ y: gridY }}
-          className="pointer-events-none absolute inset-0 opacity-[0.5] [background-image:linear-gradient(rgba(26,22,17,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(26,22,17,0.035)_1px,transparent_1px)] [background-size:54px_54px]"
-        />
-
         {/* Telemetry sweep — a thin amber line crossing the panel on a slow loop. */}
         {!reduce && (
           <m.div
