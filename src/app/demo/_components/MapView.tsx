@@ -167,7 +167,7 @@ export function MapView({
           (s.postcode_installs
             ? `<hr style="margin:4px 0;border:none;border-top:1px solid #e2e8f0"/>` +
               `<span style="color:#0ea5e9;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">● CER postcode context</span><br/>` +
-              `<span style="color:#0ea5e9">${formatNumber(s.postcode_installs)} rooftop installs · ${s.eol_cohort != null ? formatNumber(s.eol_cohort) : "—"} nearing EOL</span><br/>` +
+              `<span style="color:#0ea5e9">${formatNumber(s.postcode_installs)} rooftop installs · ${s.eol_cohort != null ? formatNumber(s.eol_cohort) : "n/a"} nearing EOL</span><br/>` +
               `<span style="color:#94a3b8;font-size:10px">Source: Clean Energy Regulator</span>`
             : ""),
       );

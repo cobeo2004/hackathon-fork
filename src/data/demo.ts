@@ -30,7 +30,7 @@ export const DEMO_FIELD_PROVENANCE = {
   synthetic_site_estimates: {
     fields: ["installed_capacity_kw", "eol_mass_kg_estimate", "telemetry_snapshot"] as const,
     source: "synthetic" as const,
-    label: "Synthetically generated — not sourced from real sensor or facility data",
+    label: "Synthetically generated, not sourced from real sensor or facility data",
     method:
       "installed_capacity_kw = postcode_installs × 6.6 kW (ARENA/CER 2023 avg system size); " +
       "eol_mass_kg_estimate = eol_cohort × 320 kg (16 panels × 20 kg/panel, industry avg); " +

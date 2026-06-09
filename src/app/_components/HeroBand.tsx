@@ -25,7 +25,7 @@ import {
 } from "motion/react";
 import { MotionProvider, useParallax } from "./motion-features";
 
-const HEAD_LEAD = ["We", "predict", "which", "solar", "assets", "fail", "next —"];
+const HEAD_LEAD = ["We", "predict", "which", "solar", "assets", "fail", "next."];
 const HEAD_ACCENT = ["and", "recover", "them", "on", "the", "cheapest", "route."];
 
 export function HeroBand() {
@@ -139,7 +139,7 @@ function HeroInner() {
             className="mt-6 max-w-2xl text-lg leading-relaxed text-muted"
           >
             Aging panels and inverters fail unpredictably. Today collection is
-            reactive and wasteful. SolarCycle AI turns health data into a plan — in
+            reactive and wasteful. SolarCycle AI turns health data into a plan, in
             three steps.
           </m.p>
 

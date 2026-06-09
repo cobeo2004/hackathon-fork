@@ -17,7 +17,7 @@ export function TwoStagePipeline({
   const isNormal = mlPrediction.predicted_binary_label === "normal";
   const faultLabel = mlPrediction.predicted_fault_type
     ? (FAULT_LABELS[mlPrediction.predicted_fault_type] ?? mlPrediction.predicted_fault_type)
-    : "—";
+    : "n/a";
 
   return (
     <div>
@@ -123,7 +123,7 @@ function Stage2Node({
       </div>
       {bypassed ? (
         <div className="mt-1 font-mono text-[11px] italic text-muted">
-          No fault — bypassed
+          No fault · bypassed
         </div>
       ) : (
         <>
