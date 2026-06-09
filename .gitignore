@@ -1,6 +1,9 @@
 # Dependencies and build output
 node_modules/
 dist/
+.next/
+next-env.d.ts
+*.tsbuildinfo
 
 # Local/editor artifacts
 .DS_Store
@@ -10,3 +13,10 @@ Thumbs.db
 
 # Local screenshots/debug captures
 app/debug-*.png
+debug-*.png
+
+.omc/
+docs/superpowers/
+
+# Build artifact (Node compile cache)
+node-compile-cache/
