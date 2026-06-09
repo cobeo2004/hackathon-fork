@@ -774,7 +774,7 @@ export default function RootLayout({
             </header>
             <main className="mx-auto max-w-6xl px-5 py-14">{children}</main>
             <footer className="mx-auto max-w-6xl px-5 pb-10 text-center font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
-              SolarCycle AI · Hackathon MVP · deterministic demo data
+              SolarCycle AI · We Maid AI · deterministic demo data
             </footer>
           </div>
         </TRPCReactProvider>

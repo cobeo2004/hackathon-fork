@@ -1,4 +1,4 @@
-# SolarCycle AI — Hackathon MVP
+# SolarCycle AI — We Maid AI
 
 > Predict solar failures. Plan recycling routes. Close the loop.
 

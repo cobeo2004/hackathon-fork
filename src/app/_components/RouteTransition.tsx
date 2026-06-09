@@ -111,7 +111,7 @@ function Inner() {
         }}
         className="relative flex flex-col items-center gap-4 text-center"
       >
-        <Image src="/logo-white.png" alt="" width={56} height={56} priority />
+        <Image src="/logo-transparent.png" alt="" width={56} height={56} priority />
         <div className="font-display text-2xl font-extrabold tracking-tight text-ink">
           SolarCycle<span className="text-solar"> AI</span>
         </div>
