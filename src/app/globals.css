@@ -153,16 +153,6 @@ h3 {
   font-family: var(--font-body);
 }
 
-/* Truck markers: colored discs that animate smoothly between position updates. */
-.truck-marker {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
-  transition: transform 0.08s linear;
-}
-
 /* Pulsing "focus" halo that follows the optimized (blue) truck during the demo. */
 .focus-ping {
   width: 64px;

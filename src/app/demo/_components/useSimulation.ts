@@ -15,8 +15,11 @@ import { BASELINE_ROUTE, COSTS, OPTIMIZED_ROUTE, POINTS_BY_ID } from "~/data/dem
 import type { Route } from "~/data/types";
 import { haversineKm, lerpLatLon, type LatLon } from "~/lib/geo";
 
-const BASELINE_SECONDS = 13; // wall-clock duration of the baseline run
+const BASELINE_SECONDS = 13; // wall-clock duration of the baseline run at 1x speed
 const SAMPLE_INTERVAL_MS = 180; // how often the charts get a new data point
+const DEFAULT_SPEED_MULTIPLIER = 1;
+export const MIN_SPEED = 0.25;
+export const MAX_SPEED = 2.5;
 
 type Status = "idle" | "running" | "done";
 
@@ -105,14 +108,26 @@ export function useSimulation() {
 
   const [status, setStatus] = useState<Status>("idle");
   const [series, setSeries] = useState<SimSample[]>([]);
+  const [speedMultiplier, setSpeedMultiplierState] = useState(DEFAULT_SPEED_MULTIPLIER);
 
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
+  const lastFrameRef = useRef<number>(0);
   const lastSampleRef = useRef<number>(0);
+  const baselineDistanceRef = useRef<number>(0);
+  const optimizedDistanceRef = useRef<number>(0);
   const samplesRef = useRef<SimSample[]>([]);
   const listenersRef = useRef<Set<FrameListener>>(new Set());
+  // Ref-backed so the rAF tick reads the live speed without re-binding `start`.
+  const speedMultiplierRef = useRef(DEFAULT_SPEED_MULTIPLIER);
 
   const speedKmPerSec = baseGeo.current.totalKm / BASELINE_SECONDS;
+
+  const setSpeedMultiplier = useCallback((value: number) => {
+    const clamped = Math.max(MIN_SPEED, Math.min(MAX_SPEED, value));
+    speedMultiplierRef.current = clamped;
+    setSpeedMultiplierState(clamped);
+  }, []);
 
   const subscribe = useCallback((cb: FrameListener) => {
     listenersRef.current.add(cb);
@@ -133,15 +148,26 @@ export function useSimulation() {
   const start = useCallback(() => {
     stop();
     samplesRef.current = [];
+    baselineDistanceRef.current = 0;
+    optimizedDistanceRef.current = 0;
     setSeries([]);
     setStatus("running");
     startRef.current = performance.now();
+    lastFrameRef.current = startRef.current;
     lastSampleRef.current = -Infinity;
 
     const tick = (now: number) => {
       const t = (now - startRef.current) / 1000;
-      const baseDist = t * speedKmPerSec;
-      const optDist = t * speedKmPerSec;
+      // Distance accumulates per-frame at the live speed, so dragging the speed bar
+      // mid-run takes effect immediately (no jump). Both trucks share the same ground
+      // speed; the shorter (optimized) route simply finishes first.
+      const deltaSeconds = Math.max(0, (now - lastFrameRef.current) / 1000);
+      lastFrameRef.current = now;
+      const deltaKm = deltaSeconds * speedKmPerSec * speedMultiplierRef.current;
+      baselineDistanceRef.current += deltaKm;
+      optimizedDistanceRef.current += deltaKm;
+      const baseDist = baselineDistanceRef.current;
+      const optDist = optimizedDistanceRef.current;
 
       const baseline = truckAt(baseGeo.current, baseDist);
       const optimized = truckAt(optGeo.current, optDist);
@@ -187,6 +213,8 @@ export function useSimulation() {
   const reset = useCallback(() => {
     stop();
     samplesRef.current = [];
+    baselineDistanceRef.current = 0;
+    optimizedDistanceRef.current = 0;
     setSeries([]);
     setStatus("idle");
     emit({
@@ -197,5 +225,5 @@ export function useSimulation() {
 
   useEffect(() => stop, [stop]);
 
-  return { status, series, start, reset, subscribe };
+  return { status, series, start, reset, subscribe, speedMultiplier, setSpeedMultiplier };
 }
