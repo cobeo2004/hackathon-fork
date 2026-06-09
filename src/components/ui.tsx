@@ -4,6 +4,7 @@
 // borders, mono telemetry labels, big display numbers.
 
 import type { ReactNode } from "react";
+import { Warning } from "@phosphor-icons/react/dist/ssr";
 import type { BreakingRisk } from "~/data/types";
 
 export function Card({
@@ -159,6 +160,38 @@ export function DataNote({
       </div>
       <div className="px-4 py-2 font-mono text-[10px] uppercase tracking-wide text-muted/80">
         Source: {source}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Page-level data caveat banner. Sibling of {@link DataNote}: where DataNote is the
+ * per-section provenance strip, Disclaimer is the up-front headline caveat shown under a
+ * page title. Token-pure soft-warning callout (amber = brand/warning per the design
+ * system), with the `◌` illustrative marker and the same on-amber ink as the other
+ * solar-soft callouts. Each page supplies its own copy via `children`.
+ */
+export function Disclaimer({
+  label = "Demo data caveat",
+  children,
+}: {
+  label?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="mb-5 flex items-start gap-3 rounded-lg border border-solar/30 border-l-2 border-l-solar bg-solar-soft px-4 py-3">
+      <Warning
+        size={22}
+        weight="fill"
+        className="mt-0.5 shrink-0 text-solar"
+        aria-hidden
+      />
+      <div className="min-w-0">
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-solar">
+          ◌ {label}
+        </div>
+        <p className="mt-1 text-[12px] leading-relaxed text-[#8a4a06]">{children}</p>
       </div>
     </div>
   );

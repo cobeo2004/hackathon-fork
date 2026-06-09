@@ -72,7 +72,7 @@ export function MobileNav() {
           {/* Top bar — brand echo + close. */}
           <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
             <div className="flex items-center gap-2.5">
-              <Image src="/logo-white.png" alt="SolarCycle AI" width={32} height={32} />
+              <Image src="/logo-transparent.png" alt="SolarCycle AI" width={32} height={32} />
               <div className="leading-none">
                 <div className="font-display text-[16px] font-extrabold tracking-tight text-ink">
                   SolarCycle<span className="text-solar"> AI</span>
@@ -147,7 +147,7 @@ export function MobileNav() {
           <div className="px-5 pb-7 pt-4">
             <div className="mobile-nav-scan mb-4 h-px w-full bg-gradient-to-r from-transparent via-solar to-transparent" />
             <div className="text-center font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
-              SolarCycle AI · Hackathon MVP · deterministic demo data
+              SolarCycle AI · We Maid AI · deterministic demo data
             </div>
           </div>
         </div>,

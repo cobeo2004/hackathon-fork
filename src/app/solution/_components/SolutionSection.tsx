@@ -8,7 +8,7 @@ import { HealthChart } from "./HealthChart";
 import { PassportPanel } from "./PassportPanel";
 import { Pipeline } from "./Pipeline";
 import { TwoStagePipeline } from "./TwoStagePipeline";
-import { Card, DataNote, RiskBadge, SectionLead } from "~/components/ui";
+import { Card, DataNote, Disclaimer, RiskBadge, SectionLead } from "~/components/ui";
 import { LiveHealthBadge } from "./LiveHealthBadge";
 import type { BreakingRisk } from "~/data/types";
 import {
@@ -212,6 +212,12 @@ export function SolutionSection() {
         title="Predict the failure, then plan the smartest collection"
         subtitle="Telemetry becomes a calibrated fault risk score, a fault type, a collection job, and a verifiable record, automatically."
       />
+
+      <Disclaimer label="Not live data">
+        The asset health data on this page is illustrative, not live. Telemetry comes from a
+        public benchmark dataset (Lotus PV Fault Benchmark) sourced from the internet, not a
+        real asset. No live IoT feed is connected.
+      </Disclaimer>
 
       <Card className="p-5">
         <Pipeline />

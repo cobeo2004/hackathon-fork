@@ -36,3 +36,24 @@ export function pathLengthKm(points: LatLon[]): number {
 export function lerpLatLon(a: LatLon, b: LatLon, t: number): LatLon {
   return { lat: a.lat + (b.lat - a.lat) * t, lon: a.lon + (b.lon - a.lon) * t };
 }
+
+/** Clockwise bearing in degrees from North (matches CSS rotate()). */
+export function bearingDeg(from: LatLon, to: LatLon): number {
+  const dLon = toRad(to.lon - from.lon);
+  const lat1 = toRad(from.lat);
+  const lat2 = toRad(to.lat);
+  const y = Math.sin(dLon) * Math.cos(lat2);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180) / Math.PI;
+}
+
+/** Unwrap `next` to the angle nearest `prev` so rotation never spins the long way. */
+export function closestEquivalentAngle(prev: number | null, next: number): number {
+  if (prev === null) return next;
+  let adjusted = next;
+  while (adjusted - prev > 180) adjusted -= 360;
+  while (adjusted - prev < -180) adjusted += 360;
+  return adjusted;
+}
