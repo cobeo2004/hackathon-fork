@@ -7,10 +7,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BASELINE_ROUTE, COSTS, OPTIMIZED_ROUTE, POINTS_BY_ID } from "../data/demo";
 import type { Route } from "../data/types";
+import { routeCost } from "../lib/cost";
 import { haversineKm, lerpLatLon, type LatLon } from "../lib/geo";
 
 const BASELINE_SECONDS = 13; // wall-clock duration of the baseline run
 const SAMPLE_INTERVAL_MS = 180; // how often the charts get a new data point
+const DEFAULT_SPEED_MULTIPLIER = 1;
 
 type Status = "idle" | "running" | "done";
 
@@ -40,6 +42,7 @@ type FrameListener = (f: FrameState) => void;
 interface RouteGeometry {
   segs: { a: LatLon; b: LatLon; len: number; startKm: number }[];
   totalKm: number;
+  totalDurationMin: number;
   handlingPerStop: number;
   collectionStopBoundaries: number[]; // cumulative km at which a collection stop is reached
 }
@@ -69,6 +72,7 @@ function buildGeometry(route: Route, handlingPerStop: number): RouteGeometry {
   return {
     segs,
     totalKm: route.total_distance_km,
+    totalDurationMin: (route.total_distance_km / COSTS.fallback_average_speed_kmh) * 60,
     handlingPerStop,
     collectionStopBoundaries,
   };
@@ -90,7 +94,12 @@ function truckAt(geo: RouteGeometry, distanceKm: number): TruckState {
 function costAt(geo: RouteGeometry, distanceKm: number): number {
   const d = Math.min(distanceKm, geo.totalKm);
   const stopsDone = geo.collectionStopBoundaries.filter((b) => d >= b).length;
-  return COSTS.dispatch_per_route + d * COSTS.vehicle_cost_per_km + stopsDone * geo.handlingPerStop;
+  return routeCost({
+    distance_km: d,
+    duration_min: geo.totalKm > 0 ? (d / geo.totalKm) * geo.totalDurationMin : 0,
+    collection_stops: stopsDone,
+    handling_per_stop: geo.handlingPerStop,
+  });
 }
 
 export function useSimulation() {
@@ -99,14 +108,25 @@ export function useSimulation() {
 
   const [status, setStatus] = useState<Status>("idle");
   const [series, setSeries] = useState<SimSample[]>([]);
+  const [speedMultiplier, setSpeedMultiplierState] = useState(DEFAULT_SPEED_MULTIPLIER);
 
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number>(0);
+  const lastFrameRef = useRef<number>(0);
   const lastSampleRef = useRef<number>(0);
+  const baselineDistanceRef = useRef<number>(0);
+  const optimizedDistanceRef = useRef<number>(0);
   const samplesRef = useRef<SimSample[]>([]);
   const listenersRef = useRef<Set<FrameListener>>(new Set());
+  const speedMultiplierRef = useRef(DEFAULT_SPEED_MULTIPLIER);
 
   const speedKmPerSec = baseGeo.current.totalKm / BASELINE_SECONDS;
+
+  const setSpeedMultiplier = useCallback((value: number) => {
+    const clamped = Math.max(0.25, Math.min(2.5, value));
+    speedMultiplierRef.current = clamped;
+    setSpeedMultiplierState(clamped);
+  }, []);
 
   const subscribe = useCallback((cb: FrameListener) => {
     listenersRef.current.add(cb);
@@ -127,15 +147,23 @@ export function useSimulation() {
   const start = useCallback(() => {
     stop();
     samplesRef.current = [];
+    baselineDistanceRef.current = 0;
+    optimizedDistanceRef.current = 0;
     setSeries([]);
     setStatus("running");
     startRef.current = performance.now();
+    lastFrameRef.current = startRef.current;
     lastSampleRef.current = -Infinity;
 
     const tick = (now: number) => {
       const t = (now - startRef.current) / 1000;
-      const baseDist = t * speedKmPerSec;
-      const optDist = t * speedKmPerSec;
+      const deltaSeconds = Math.max(0, (now - lastFrameRef.current) / 1000);
+      lastFrameRef.current = now;
+      const deltaKm = deltaSeconds * speedKmPerSec * speedMultiplierRef.current;
+      baselineDistanceRef.current += deltaKm;
+      optimizedDistanceRef.current += deltaKm;
+      const baseDist = baselineDistanceRef.current;
+      const optDist = optimizedDistanceRef.current;
 
       const baseline = truckAt(baseGeo.current, baseDist);
       const optimized = truckAt(optGeo.current, optDist);
@@ -160,8 +188,8 @@ export function useSimulation() {
         // Pin the final sample to exact canonical totals.
         const finalSample: SimSample = {
           t: Math.round(t * 10) / 10,
-          baselineCost: BASELINE_ROUTE.total_cost_aud,
-          optimizedCost: OPTIMIZED_ROUTE.total_cost_aud,
+          baselineCost: Math.round(costAt(baseGeo.current, baseGeo.current.totalKm)),
+          optimizedCost: Math.round(costAt(optGeo.current, optGeo.current.totalKm)),
           baselineDist: BASELINE_ROUTE.total_distance_km,
           optimizedDist: OPTIMIZED_ROUTE.total_distance_km,
         };
@@ -181,6 +209,8 @@ export function useSimulation() {
   const reset = useCallback(() => {
     stop();
     samplesRef.current = [];
+    baselineDistanceRef.current = 0;
+    optimizedDistanceRef.current = 0;
     setSeries([]);
     setStatus("idle");
     emit({
@@ -191,5 +221,5 @@ export function useSimulation() {
 
   useEffect(() => stop, [stop]);
 
-  return { status, series, start, reset, subscribe };
+  return { status, series, start, reset, subscribe, speedMultiplier, setSpeedMultiplier };
 }

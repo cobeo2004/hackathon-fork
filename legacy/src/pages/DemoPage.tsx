@@ -1,46 +1,80 @@
-import { FEATURED_ASSET } from "../data/asset";
-import { BASELINE_ROUTE, OPTIMIZED_ROUTE } from "../data/demo";
+import { BASELINE_ROUTE, COSTS, OPTIMIZED_ROUTE } from "../data/demo";
 import { MapView } from "../components/MapView";
 import { Button, Card, DataNote, SectionLead } from "../components/ui";
 import type { useSimulation } from "../hooks/useSimulation";
-import { buildComparison } from "../lib/cost";
+import { useRoadRoutes, type RoadRoutesState } from "../hooks/useRoadRoutes";
+import { useMemo, type ChangeEvent } from "react";
 
 type Sim = ReturnType<typeof useSimulation>;
 
 export function DemoSection({ sim }: { sim: Sim }) {
-  const { status, series, start, reset, subscribe } = sim;
-  const comparison = buildComparison(4);
+  const { status, series, start, reset, subscribe, speedMultiplier, setSpeedMultiplier } = sim;
+  const roadRoutes = useRoadRoutes();
+  const mapRoadRoutes = useMemo(
+    () => ({ baseline: roadRoutes.baseline, optimized: roadRoutes.optimized }),
+    [roadRoutes.baseline, roadRoutes.optimized],
+  );
+  const comparison = roadRoutes.comparison;
   const latest = series[series.length - 1];
 
   // Live figures: while idle, preview the planned route totals so the cards are never
   // a confusing "0"; once running they follow the live totals and settle on the result.
   const preview = status === "idle";
-  const baseDist = latest?.baselineDist ?? (preview ? BASELINE_ROUTE.total_distance_km : 0);
-  const optDist = latest?.optimizedDist ?? (preview ? OPTIMIZED_ROUTE.total_distance_km : 0);
-  const baseCost = latest?.baselineCost ?? (preview ? BASELINE_ROUTE.total_cost_aud : 0);
-  const optCost = latest?.optimizedCost ?? (preview ? OPTIMIZED_ROUTE.total_cost_aud : 0);
+  const baseDist =
+    status === "done" ? comparison.baselineDistance : latest?.baselineDist ?? (preview ? comparison.baselineDistance : 0);
+  const optDist =
+    status === "done" ? comparison.optimizedDistance : latest?.optimizedDist ?? (preview ? comparison.optimizedDistance : 0);
+  const baseCost =
+    status === "done" ? comparison.baselineCost : latest?.baselineCost ?? (preview ? comparison.baselineCost : 0);
+  const optCost =
+    status === "done" ? comparison.optimizedCost : latest?.optimizedCost ?? (preview ? comparison.optimizedCost : 0);
 
   return (
     <div>
       <SectionLead
         step={3}
         eyebrow="The demo"
-        title="Same job, same truck — watch ours finish cheaper"
-        subtitle="Both trucks recover the same 1,980 kg. Red is today's reactive route; blue is SolarCycle AI. Only the routing strategy changes."
+        title="Real postcode demand, routed to real PV recyclers"
+        subtitle="The dots are Victorian postcodes backed by CER install data. Red is postcode-by-postcode planning; blue prioritizes the same demand areas by age cohort, solar density, and route distance."
       />
 
       <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] leading-relaxed text-amber-900">
         <span className="mr-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em]">
-          ◌ Data provenance
+          Data provenance
         </span>
         Phase 1 uses real public datasets for postcode-level solar installation context, product
         mix, and facility locations.{" "}
         <strong>
-          Site locations, risk scores, collection status, and mass are illustrative demo
-          scenarios — CER data only supports postcode-level install counts and age cohorts.
+          Demand dots are postcode-area centroids, not exact rooftops. Priority scores are
+          derived from real CER install totals, real CER pre-2011 cohorts, and route distance.
         </strong>{" "}
-        Facility locations are real. Solar-specific acceptance and daily processing capacity are
-        assumptions unless separately verified with the operator.
+        Solar PV recycler/drop-point locations are public listings. Daily processing capacity is
+        not used because per-facility capacity is not public.
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-panel px-4 py-3">
+        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+          Route engine:{" "}
+          <span className={roadRoutes.status === "ready" ? "text-recover" : "text-amber-700"}>
+            {roadRoutes.status === "loading"
+              ? "connecting to OSRM roads"
+              : roadRoutes.status === "ready"
+                ? "live OSRM road routing"
+                : "offline fallback"}
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-3 font-mono text-[11px] uppercase tracking-wide text-muted">
+          <span>Baseline {comparison.baselineDistance.toFixed(1)} km</span>
+          <span>Optimized {comparison.optimizedDistance.toFixed(1)} km</span>
+          {roadRoutes.optimized.durationMin ? <span>{roadRoutes.optimized.durationMin} min drive time</span> : null}
+        </div>
+      </div>
+
+      <div className="mb-4 rounded-lg border border-line bg-paper/70 px-4 py-3 text-[12px] leading-relaxed text-muted">
+        Cost is an estimated route operating cost: A${COSTS.vehicle_operating_cost_per_km.toFixed(2)}/km vehicle
+        operating cost, A${COSTS.driver_labour_cost_per_hour}/hour driver labour, A$
+        {COSTS.baseline_handling_per_stop}/stop reactive handling, A${COSTS.optimized_handling_per_stop}/stop
+        coordinated handling, and A${COSTS.dispatch_per_route}/run dispatch admin.
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -55,20 +89,28 @@ export function DemoSection({ sim }: { sim: Sim }) {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <SpeedControl value={speedMultiplier} onChange={setSpeedMultiplier} />
           <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-            {status === "idle" ? "● Ready" : status === "running" ? "● Running…" : "● Complete"}
+            {status === "idle" ? "Ready" : status === "running" ? "Running..." : "Complete"}
           </span>
           {status === "idle" ? (
-            <Button onClick={start} variant="success">▶ Run live demo</Button>
+            <Button onClick={start} variant="success">Run live demo</Button>
           ) : (
-            <Button onClick={() => { reset(); start(); }} variant="ghost">↻ Replay</Button>
+            <Button onClick={() => { reset(); start(); }} variant="ghost">Replay</Button>
           )}
         </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Card className="overflow-hidden p-0 lg:col-span-2">
-          <MapView height={520} showRoutes networkGraph status={status} subscribe={subscribe} />
+          <MapView
+            height={520}
+            showRoutes
+            networkGraph
+            status={status}
+            subscribe={subscribe}
+            roadRoutes={mapRoadRoutes}
+          />
         </Card>
 
         <div className="space-y-4">
@@ -91,37 +133,93 @@ export function DemoSection({ sim }: { sim: Sim }) {
                 Result
               </div>
               <div className="mt-1 font-display text-6xl font-extrabold leading-none tracking-tight text-recover">
-                −{comparison.costReductionPct.toFixed(0)}%
+                -{comparison.costReductionPct.toFixed(0)}%
               </div>
               <div className="mt-1 font-display text-sm font-bold uppercase tracking-wide text-recover">
                 logistics cost
               </div>
               <div className="mt-3 text-[13px] leading-snug text-[#2a5f43]">
-                −{comparison.distanceReductionPct.toFixed(0)}% distance · same{" "}
-                {comparison.collectedMassKg.toLocaleString()} kg recovered
+                A${Math.round(comparison.baselineCost)} to A${Math.round(comparison.optimizedCost)} estimated route
+                operating cost. -{comparison.distanceReductionPct.toFixed(0)}% distance, same{" "}
+                {comparison.collectedMassKg.toLocaleString()} pre-2011 systems covered
               </div>
             </Card>
           ) : (
             <Card className="p-5 text-[13px] leading-relaxed text-muted">
               Press <strong className="text-ink">Run live demo</strong> to dispatch both
-              trucks. Watch the blue route finish shorter and cheaper than the red one.
+              campaign routes. Watch the blue route cover the same postcode demand with less travel.
             </Card>
           )}
         </div>
       </div>
 
-      <CompareTable comparison={comparison} />
+      <CompareTable
+        comparison={comparison}
+        baseDist={baseDist}
+        optDist={optDist}
+        baseCost={baseCost}
+        optCost={optCost}
+      />
 
       <DataNote
-        real="depot & recycling centre locations (Cleanaway Laverton; Lotus Recycling, Campbellfield); postcode install counts & pre-2011 EOL cohort (Clean Energy Regulator)"
-        illustrative="site risk scores, mass estimates, status, EOL windows, collection windows, route distances/costs, and facility processing capacity — all illustrative demo assumptions"
-        source="Cleanaway & Lotus Recycling (public sites); CER SRES postcode data (to Apr 2026); straight-line distances (OpenRouteService roads = future upgrade)"
+        real="postcode install counts and pre-2011 EOL cohorts (Clean Energy Regulator); postcode-area centroid approximations (ABS ASGS 2021 POA); public solar PV recycler/drop-point listings"
+        illustrative="estimated route operating-cost assumptions and route-comparison strategy only; no invented rooftop/site pickup locations or invented facility capacity"
+        source="CER SRES postcode data (to Apr 2026); ABS Postal Areas; Solar Victoria, Lotus Recycling, Elecsome, Sircel; OSRM/OpenStreetMap road distance/time with speed-based fallback"
       />
     </div>
   );
 }
 
-const FAIL_DAYS = FEATURED_ASSET.estimated_failure_window_days;
+const SPEED_PRESETS = [0.5, 1, 1.5, 2];
+
+function SpeedControl({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const handleSlider = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange(Number(event.target.value));
+  };
+
+  return (
+    <div className="flex min-w-[260px] items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2">
+      <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+        Speed
+      </div>
+      <input
+        aria-label="Truck speed"
+        type="range"
+        min="0.25"
+        max="2.5"
+        step="0.25"
+        value={value}
+        onChange={handleSlider}
+        className="h-1.5 w-24 accent-recover"
+      />
+      <div className="w-10 text-right font-mono text-[11px] font-semibold tabular-nums text-ink">
+        {value.toFixed(2).replace(/\.00$/, "")}x
+      </div>
+      <div className="hidden items-center gap-1 sm:flex">
+        {SPEED_PRESETS.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            onClick={() => onChange(preset)}
+            className={`rounded-md px-2 py-1 font-mono text-[10px] font-semibold tabular-nums transition-colors ${
+              Math.abs(value - preset) < 0.01
+                ? "bg-ink text-paper"
+                : "bg-paper text-muted hover:bg-line/60 hover:text-ink"
+            }`}
+          >
+            {preset}x
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type Row = {
   metric: string;
@@ -130,29 +228,41 @@ type Row = {
   delta: string;
 };
 
-function CompareTable({ comparison }: { comparison: ReturnType<typeof buildComparison> }) {
+function CompareTable({
+  comparison,
+  baseDist,
+  optDist,
+  baseCost,
+  optCost,
+}: {
+  comparison: RoadRoutesState["comparison"];
+  baseDist: number;
+  optDist: number;
+  baseCost: number;
+  optCost: number;
+}) {
   const rows: Row[] = [
-    { metric: "When you act", base: "After it fails", ours: `~${FAIL_DAYS} days early`, delta: "Predictive" },
-    { metric: "Dispatch", base: "One job at a time", ours: "One optimized plan", delta: "Coordinated" },
+    { metric: "Demand signal", base: "Individual calls", ours: "CER postcode cohort", delta: "Observed" },
+    { metric: "Dispatch", base: "Postcode order", ours: "One campaign route", delta: "Coordinated" },
     {
       metric: "Route distance",
-      base: `${comparison.baselineDistance} km`,
-      ours: `${comparison.optimizedDistance} km`,
-      delta: `−${comparison.distanceReductionPct.toFixed(0)}%`,
+      base: `${baseDist.toFixed(1)} km`,
+      ours: `${optDist.toFixed(1)} km`,
+      delta: `-${comparison.distanceReductionPct.toFixed(0)}%`,
     },
     {
-      metric: "Cost per run",
-      base: `A$${Math.round(comparison.baselineCost)}`,
-      ours: `A$${Math.round(comparison.optimizedCost)}`,
-      delta: `−${comparison.costReductionPct.toFixed(0)}%`,
+      metric: "Estimated cost per run",
+      base: `A$${Math.round(baseCost)}`,
+      ours: `A$${Math.round(optCost)}`,
+      delta: `-${comparison.costReductionPct.toFixed(0)}%`,
     },
     {
-      metric: "Mass recovered",
-      base: `${comparison.collectedMassKg.toLocaleString()} kg`,
-      ours: `${comparison.collectedMassKg.toLocaleString()} kg`,
+      metric: "EOL cohort covered",
+      base: `${comparison.collectedMassKg.toLocaleString()} systems`,
+      ours: `${comparison.collectedMassKg.toLocaleString()} systems`,
       delta: "Same",
     },
-    { metric: "Asset record", base: "None", ours: "Digital passport", delta: "Provable" },
+    { metric: "Destination", base: "Generic facility", ours: "Listed PV recycler", delta: "Verified" },
   ];
 
   return (
@@ -209,11 +319,11 @@ function TruckStat({
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">Distance</div>
-          <div className="font-display text-2xl font-extrabold tabular-nums text-ink">{distance} <span className="text-base text-muted">km</span></div>
+          <div className="font-display text-2xl font-extrabold tabular-nums text-ink">{distance.toFixed(1)} <span className="text-base text-muted">km</span></div>
         </div>
         <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">Cost</div>
-          <div className="font-display text-2xl font-extrabold tabular-nums text-ink">A${cost}</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">Est. cost</div>
+          <div className="font-display text-2xl font-extrabold tabular-nums text-ink">A${Math.round(cost)}</div>
         </div>
       </div>
     </Card>

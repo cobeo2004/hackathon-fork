@@ -14,7 +14,10 @@ export default function ProblemPage() {
 
 async function ProblemData() {
   await connection();
-  await prefetch(trpc.stats.problem.queryOptions());
+  await Promise.all([
+    prefetch(trpc.stats.problem.queryOptions()),
+    prefetch(trpc.stats.topPostcodes.queryOptions()),
+  ]);
   return (
     <HydrateClient>
       <ProblemSection />

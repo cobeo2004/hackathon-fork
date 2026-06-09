@@ -96,7 +96,7 @@ function truckAt(geo: RouteGeometry, distanceKm: number): TruckState {
 function costAt(geo: RouteGeometry, distanceKm: number): number {
   const d = Math.min(distanceKm, geo.totalKm);
   const stopsDone = geo.collectionStopBoundaries.filter((b) => d >= b).length;
-  return COSTS.dispatch_per_route + d * COSTS.vehicle_cost_per_km + stopsDone * geo.handlingPerStop;
+  return COSTS.dispatch_per_route + d * COSTS.vehicle_operating_cost_per_km + stopsDone * geo.handlingPerStop;
 }
 
 export function useSimulation() {

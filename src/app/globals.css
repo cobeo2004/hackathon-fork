@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+@import "katex/dist/katex.min.css";
 
 /* "Solar Instrument Panel" theme — warm paper, near-black ink, solar-amber accent.
    Green is reserved for the recovery/"win" moment; red = risk; blue = optimized route. */
@@ -63,6 +64,87 @@ h3 {
 .reveal {
   opacity: 0;
   animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile nav: full-screen overlay on warm PAPER (matches the page floor, not black).
+   Opaque — covers the textured page beneath — with the same faint amber glow + grid
+   for depth. Fades in; rows clip-rise with staggered delay; an amber scan-line sweeps. */
+.mobile-nav-overlay {
+  /* Solid warm-paper floor — opaque so the page never bleeds through. Hard #fff
+     fallback first, then the token, then the glow/grid layers paint on top. */
+  background-color: #ffffff;
+  background-color: var(--color-paper, #ffffff);
+  background-image:
+    radial-gradient(680px 420px at 88% -8%, rgba(224, 124, 8, 0.07), transparent 62%),
+    radial-gradient(540px 380px at 6% 108%, rgba(29, 122, 77, 0.05), transparent 60%);
+  isolation: isolate;
+}
+/* Fade only the inner contents in, NOT the overlay box — so the opaque paper floor
+   is painted at full strength from frame 0 (no see-through during the fade). */
+.mobile-nav-overlay > * {
+  animation: nav-overlay-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes nav-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Each link clips up from below its top hairline, staggered via inline delay. */
+@keyframes nav-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+.mobile-nav-row {
+  opacity: 0;
+  animation: nav-row-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Amber scan-line above the footer: a soft sweep that loops. */
+@keyframes nav-scan {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+.mobile-nav-scan {
+  animation: nav-scan 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav-overlay,
+  .mobile-nav-row,
+  .mobile-nav-scan {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+}
+
+/* KaTeX formula chips (algorithm strip): read as instrument fine-print, not a
+   textbook. Inherit the chip's ink color; small, tight; never overflow the card. */
+.algo-formula .katex {
+  font-size: 0.85em;
+  color: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 /* Leaflet should inherit the paper, not pure white. */

@@ -72,7 +72,7 @@ export function InstallWaveChart({
           fontWeight={600}
           fill="#cf3d29"
         >
-          ▮ 2011–2014 boom — these inverters are failing now
+          ▮ 2011–2014 boom: these inverters are failing now
         </text>
       </g>
       <text

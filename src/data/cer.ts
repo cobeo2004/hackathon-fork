@@ -6,7 +6,7 @@
 // for the nine demo postcodes and baked in so the app stays deterministic and offline.
 
 export const CER_SOURCE = {
-  name: "Clean Energy Regulator — SRES small-scale solar (SGU) postcode installations",
+  name: "Clean Energy Regulator - SRES small-scale solar (SGU) postcode installations",
   url: "https://cer.gov.au/document_page/sres-postcode-data-installations-2011-to-present",
   retrieved: "2026-06-06",
   coverage: "2001 – Apr 2026",

@@ -144,19 +144,22 @@ export function DataNote({
   source: string;
 }) {
   return (
-    <div className="mt-5 flex flex-wrap items-start gap-x-2 gap-y-1 rounded-lg border border-line bg-paper/60 px-4 py-2.5 text-[12px] leading-snug text-muted">
-      <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-recover">
-        ● Real
-      </span>
-      <span className="text-ink/70">{real}</span>
-      <span className="font-mono text-[10px] text-muted">·</span>
-      <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-solar">
-        ◌ Illustrative
-      </span>
-      <span className="text-ink/70">{illustrative}</span>
-      <span className="w-full font-mono text-[10px] uppercase tracking-wide text-muted/80">
+    <div className="mt-5 divide-y divide-line rounded-lg border border-line bg-paper/60 text-[12px] leading-snug text-muted">
+      <div className="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-baseline sm:gap-3">
+        <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-recover">
+          ● Real
+        </span>
+        <span className="text-ink/70">{real}</span>
+      </div>
+      <div className="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-baseline sm:gap-3">
+        <span className="shrink-0 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-solar">
+          ◌ Illustrative
+        </span>
+        <span className="text-ink/70">{illustrative}</span>
+      </div>
+      <div className="px-4 py-2 font-mono text-[10px] uppercase tracking-wide text-muted/80">
         Source: {source}
-      </span>
+      </div>
     </div>
   );
 }

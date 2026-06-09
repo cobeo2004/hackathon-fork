@@ -32,14 +32,17 @@ const ageYears =
 
 // 12 hourly readings showing a degrading inverter: temperature and THD climb,
 // efficiency falls, risk score rises into the "likely_breaking" band.
+// dc_voltage / current are calibrated so healthReadingToPvTelemetry() produces
+// per-string values consistent with the Lotus PV Fault Benchmark degradation class
+// (~255V/string, ~7-8A/string). All values are synthetic.
 export const HEALTH_SERIES: HealthReading[] = Array.from({ length: HOURS }, (_, h) => {
   const p = h / (HOURS - 1); // 0..1 progression across the day
   const temperature_c = Math.round(58 + 22 * p);
   const thd = Math.round((3.2 + 5.0 * p) * 10) / 10;
   const conversion_efficiency = Math.round((96 - 7.5 * p) * 10) / 10;
   const ac_voltage = Math.round(232 + 9 * p);
-  const dc_voltage = Math.round(610 - 30 * p);
-  const current = Math.round((16.5 + 2.4 * p) * 10) / 10;
+  const dc_voltage = Math.round(520 - 30 * p);
+  const current = Math.round((13.5 + 1.5 * p) * 10) / 10;
   const power_factor = Math.round((0.97 - 0.07 * p) * 100) / 100;
 
   const score = riskScore({

@@ -1,6 +1,7 @@
 // Digital passport: a tamper-evident lifecycle timeline. We hide the raw hash
 // chain (jargon for a pitch) and show a single "verified" signal instead.
 
+import { ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 import type { PassportEvent } from "~/data/types";
 
 const EVENT_TONE: Record<string, { dot: string; chip: string }> = {
@@ -50,7 +51,7 @@ export function PassportPanel({
       })}
       <li className="relative pt-1">
         <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide text-recover">
-          <span>🔒</span> Tamper-evident · hash-chained
+          <ShieldCheck size={12} weight="bold" /> Tamper-evident · hash-chained
         </div>
       </li>
     </ol>

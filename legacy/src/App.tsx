@@ -54,7 +54,7 @@ export default function App() {
           className="reveal mt-3 max-w-4xl font-display text-4xl font-extrabold leading-[1.05] tracking-[-0.02em] text-ink md:text-[56px]"
           style={{ animationDelay: "0.08s" }}
         >
-          We predict which solar assets fail next —
+          We predict which solar assets fail next -
           <span className="text-solar"> and recover them on the cheapest possible route.</span>
         </h1>
         <p
@@ -62,7 +62,7 @@ export default function App() {
           style={{ animationDelay: "0.16s" }}
         >
           Aging panels and inverters fail unpredictably. Today collection is reactive and
-          wasteful. SolarCycle AI turns health data into a plan — in three steps.
+          wasteful. SolarCycle AI turns health data into a plan - in three steps.
         </p>
       </section>
 

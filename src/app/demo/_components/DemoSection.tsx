@@ -3,7 +3,9 @@
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
+import { ArrowsClockwise, Play } from "@phosphor-icons/react/dist/ssr";
 import { useSimulation } from "./useSimulation";
+import { useRoadRoutes } from "~/hooks/useRoadRoutes";
 import { Button, Card, DataNote, SectionLead } from "~/components/ui";
 import { formatNumber } from "~/lib/format";
 import { TruckStat } from "./TruckStat";
@@ -19,6 +21,10 @@ export function DemoSection() {
 
   const sim = useSimulation();
   const { status, series, start, reset, subscribe } = sim;
+
+  // Real road geometry (OSRM) for the drawn route lines, with a straight-line
+  // fallback so the demo still works offline.
+  const road = useRoadRoutes();
 
   if (!routes || !comparison) return null;
 
@@ -43,7 +49,7 @@ export function DemoSection() {
       <SectionLead
         step={3}
         eyebrow="The demo"
-        title="Same job, same truck — watch ours finish cheaper"
+        title="Same job, same truck. Watch ours finish cheaper"
         subtitle="Both trucks recover the same 1,980 kg. Red is today's reactive route; blue is SolarCycle AI. Only the routing strategy changes."
       />
 
@@ -55,7 +61,7 @@ export function DemoSection() {
         product mix, and facility locations.{" "}
         <strong>
           Site locations, risk scores, collection status, and mass are illustrative demo
-          scenarios — CER data only supports postcode-level install counts and age
+          scenarios. CER data only supports postcode-level install counts and age
           cohorts.
         </strong>{" "}
         Facility locations are real. Solar-specific acceptance and daily processing
@@ -80,6 +86,16 @@ export function DemoSection() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <span
+            className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted"
+            title={road.error}
+          >
+            {road.status === "loading"
+              ? "◌ Routing roads…"
+              : road.status === "ready"
+                ? "● Road network (OSRM)"
+                : "◌ Straight-line fallback"}
+          </span>
           <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
             {status === "idle"
               ? "● Ready"
@@ -89,7 +105,7 @@ export function DemoSection() {
           </span>
           {status === "idle" ? (
             <Button onClick={start} variant="success">
-              ▶ Run live demo
+              <Play size={14} weight="fill" /> Run live demo
             </Button>
           ) : (
             <Button
@@ -99,7 +115,7 @@ export function DemoSection() {
               }}
               variant="ghost"
             >
-              ↻ Replay
+              <ArrowsClockwise size={14} weight="bold" /> Replay
             </Button>
           )}
         </div>
@@ -107,7 +123,15 @@ export function DemoSection() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Card className="overflow-hidden p-0 lg:col-span-2">
-          <MapView height={520} showRoutes networkGraph status={status} subscribe={subscribe} />
+          <MapView
+            height={520}
+            showRoutes
+            networkGraph
+            status={status}
+            subscribe={subscribe}
+            baselineRoad={road.baseline}
+            optimizedRoad={road.optimized}
+          />
         </Card>
 
         <div className="space-y-4">
@@ -160,8 +184,8 @@ export function DemoSection() {
 
       <DataNote
         real="depot & recycling centre locations (Cleanaway Laverton; Lotus Recycling, Campbellfield); postcode install counts & pre-2011 EOL cohort (Clean Energy Regulator)"
-        illustrative="site risk scores, mass estimates, status, EOL windows, collection windows, route distances/costs, and facility processing capacity — all illustrative demo assumptions"
-        source="Cleanaway & Lotus Recycling (public sites); CER SRES postcode data (to Apr 2026); straight-line distances (OpenRouteService roads = future upgrade)"
+        illustrative="site risk scores, mass estimates, status, EOL windows, collection windows, route distances/costs, and facility processing capacity. All illustrative demo assumptions"
+        source="Cleanaway & Lotus Recycling (public sites); CER SRES postcode data (to Apr 2026); road geometry via OSRM public router, straight-line fallback when offline"
       />
     </div>
   );

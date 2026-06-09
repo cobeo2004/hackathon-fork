@@ -14,6 +14,7 @@ import type { Route, Site } from "~/data/types";
 import { haversineKm } from "~/lib/geo";
 import { formatNumber } from "~/lib/format";
 import type { FrameState } from "./useSimulation";
+import type { RoadRoute } from "~/lib/roadRouting";
 
 const STATUS_COLOR: Record<Site["status"], string> = {
   ready_for_collection: "#dc2626",
@@ -26,6 +27,16 @@ type SimStatus = "idle" | "running" | "done";
 
 function routeLatLngs(route: Route): L.LatLngExpression[] {
   return route.stops.map((id) => [POINTS_BY_ID[id].lat, POINTS_BY_ID[id].lon]);
+}
+
+// Prefer real OSRM road geometry when available; otherwise fall back to the
+// straight stop-to-stop line. Keeps the demo working offline (Non-Goals: no
+// network reliance), just with less geographic fidelity.
+function roadLatLngs(road: RoadRoute | undefined, fallback: Route): L.LatLngExpression[] {
+  if (road && road.provider === "osrm" && road.coordinates.length > 1) {
+    return road.coordinates.map((c) => [c.lat, c.lon]);
+  }
+  return routeLatLngs(fallback);
 }
 
 function truckIcon(color: string) {
@@ -89,12 +100,16 @@ export function MapView({
   subscribe,
   status = "idle",
   height = 420,
+  baselineRoad,
+  optimizedRoad,
 }: {
   showRoutes?: boolean;
   networkGraph?: boolean;
   subscribe?: (cb: (f: FrameState) => void) => () => void;
   status?: SimStatus;
   height?: number;
+  baselineRoad?: RoadRoute;
+  optimizedRoad?: RoadRoute;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -152,7 +167,7 @@ export function MapView({
           (s.postcode_installs
             ? `<hr style="margin:4px 0;border:none;border-top:1px solid #e2e8f0"/>` +
               `<span style="color:#0ea5e9;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">● CER postcode context</span><br/>` +
-              `<span style="color:#0ea5e9">${formatNumber(s.postcode_installs)} rooftop installs · ${s.eol_cohort != null ? formatNumber(s.eol_cohort) : "—"} nearing EOL</span><br/>` +
+              `<span style="color:#0ea5e9">${formatNumber(s.postcode_installs)} rooftop installs · ${s.eol_cohort != null ? formatNumber(s.eol_cohort) : "n/a"} nearing EOL</span><br/>` +
               `<span style="color:#94a3b8;font-size:10px">Source: Clean Energy Regulator</span>`
             : ""),
       );
@@ -192,13 +207,13 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !showRoutes) return;
 
-    const baseLine = L.polyline(routeLatLngs(BASELINE_ROUTE), {
+    const baseLine = L.polyline(roadLatLngs(baselineRoad, BASELINE_ROUTE), {
       color: BASELINE_ROUTE.color,
       weight: 4,
       opacity: 0.7,
       dashArray: "8 6",
     }).addTo(map);
-    const optLine = L.polyline(routeLatLngs(OPTIMIZED_ROUTE), {
+    const optLine = L.polyline(roadLatLngs(optimizedRoad, OPTIMIZED_ROUTE), {
       color: OPTIMIZED_ROUTE.color,
       weight: 5,
       opacity: 0.9,
@@ -232,7 +247,7 @@ export function MapView({
       optimizedTruckRef.current = null;
       focusRef.current = null;
     };
-  }, [showRoutes]);
+  }, [showRoutes, baselineRoad, optimizedRoad]);
 
   // Camera: keep the whole region framed the entire time — no zoom or follow while
   // the trucks run, so judges always see both trucks and the full route network.

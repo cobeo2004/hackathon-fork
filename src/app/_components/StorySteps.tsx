@@ -28,7 +28,7 @@ const STEPS = [
     href: "/problem",
     eyebrow: "The problem",
     title: "A failure wave is already here",
-    body: "Victoria's 2011–2014 rooftop boom is hitting inverter end-of-life now — 247k systems, growing recycling demand, reactive collection.",
+    body: "Victoria's 2011–2014 rooftop boom is hitting inverter end-of-life now: 247k systems, growing recycling demand, reactive collection.",
     cta: "See the problem",
     offset: "md:mt-0",
   },
@@ -46,7 +46,7 @@ const STEPS = [
     href: "/demo",
     eyebrow: "The demo",
     title: "Watch the recovery run",
-    body: "Two trucks race the same job: reactive vs optimized. Shorter route, lower cost, same assets recovered — live on the map.",
+    body: "Two trucks race the same job: reactive vs optimized. Shorter route, lower cost, same assets recovered, live on the map.",
     cta: "Run the demo",
     offset: "md:mt-32",
   },
@@ -102,22 +102,42 @@ function Inner() {
 
   const n = STEPS.length;
   return (
-    <section ref={ref} className="relative" style={{ minHeight: "280vh" }}>
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+    <>
+      {/* Mobile: a plain stacked grid — no pinning, so the heading never hides under
+          the fixed header and the 3-up isn't crushed. Scrubbed sticky version is md+. */}
+      <section className="md:hidden">
         <Heading />
-        <div className="grid gap-5 md:grid-cols-3 md:items-start">
-          {STEPS.map((s, i) => (
-            <StepCard key={s.href} step={s} index={i} count={n} progress={progress} />
+        <div className="grid gap-5">
+          {STEPS.map((s) => (
+            <div key={s.href}>
+              <StepCardBody step={s} />
+            </div>
           ))}
         </div>
-        {/* Band ticks — show which of the three cards you're on. */}
-        <div className="mt-10 flex gap-2">
-          {STEPS.map((s, i) => (
-            <Tick key={s.href} index={i} count={n} progress={progress} />
-          ))}
+      </section>
+
+      {/* md+: pinned, scroll-scrubbed reveal. */}
+      <section
+        ref={ref}
+        className="relative hidden md:block"
+        style={{ minHeight: "280vh" }}
+      >
+        <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+          <Heading />
+          <div className="grid gap-5 md:grid-cols-3 md:items-start">
+            {STEPS.map((s, i) => (
+              <StepCard key={s.href} step={s} index={i} count={n} progress={progress} />
+            ))}
+          </div>
+          {/* Band ticks — show which of the three cards you're on. */}
+          <div className="mt-10 flex gap-2">
+            {STEPS.map((s, i) => (
+              <Tick key={s.href} index={i} count={n} progress={progress} />
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
 

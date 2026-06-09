@@ -8,6 +8,7 @@ export interface Series {
   name: string;
   color: string;
   values: number[];
+  dashed?: boolean;
 }
 
 export function LineChart({
@@ -72,7 +73,7 @@ export function LineChart({
         const lastI = s.values.length - 1;
         return (
           <g key={s.name}>
-            <path d={d} fill="none" stroke={s.color} strokeWidth={2.5} strokeLinejoin="round" />
+            <path d={d} fill="none" stroke={s.color} strokeWidth={2.5} strokeLinejoin="round" strokeDasharray={s.dashed ? "6 3" : undefined} />
             <circle cx={x(lastI)} cy={y(s.values[lastI])} r={3.5} fill={s.color} />
           </g>
         );
