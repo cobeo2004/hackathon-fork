@@ -1,10 +1,12 @@
 // SolarCycle AI in four phases — the whole product in one glance for the pitch.
 
+import { Broadcast, LinkSimple, Truck, Warning } from "@phosphor-icons/react/dist/ssr";
+
 const STEPS = [
-  { icon: "📡", label: "Sense", detail: "Ingest inverter health telemetry" },
-  { icon: "⚠️", label: "Predict", detail: "Risk score + end-of-life window" },
-  { icon: "🚚", label: "Plan", detail: "Capacity-aware collection route" },
-  { icon: "🔗", label: "Prove", detail: "Append verifiable passport event" },
+  { Icon: Broadcast, label: "Sense", detail: "Ingest inverter health telemetry" },
+  { Icon: Warning, label: "Predict", detail: "Risk score + end-of-life window" },
+  { Icon: Truck, label: "Plan", detail: "Capacity-aware collection route" },
+  { Icon: LinkSimple, label: "Prove", detail: "Append verifiable passport event" },
 ];
 
 export function Pipeline() {
@@ -13,8 +15,8 @@ export function Pipeline() {
       {STEPS.map((s, i) => (
         <div key={s.label} className="flex flex-1 items-center gap-3 md:gap-0">
           <div className="flex flex-1 items-center gap-3 rounded-lg border border-line bg-paper/60 px-4 py-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-panel text-xl shadow-sm">
-              {s.icon}
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-panel text-ink shadow-sm">
+              <s.Icon size={20} weight="regular" />
             </span>
             <div>
               <div className="flex items-center gap-2">

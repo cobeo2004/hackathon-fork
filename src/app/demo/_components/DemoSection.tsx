@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
+import { ArrowsClockwise, Play } from "@phosphor-icons/react/dist/ssr";
 import { useSimulation } from "./useSimulation";
 import { useRoadRoutes } from "~/hooks/useRoadRoutes";
 import { Button, Card, DataNote, SectionLead } from "~/components/ui";
@@ -104,7 +105,7 @@ export function DemoSection() {
           </span>
           {status === "idle" ? (
             <Button onClick={start} variant="success">
-              ▶ Run live demo
+              <Play size={14} weight="fill" /> Run live demo
             </Button>
           ) : (
             <Button
@@ -114,7 +115,7 @@ export function DemoSection() {
               }}
               variant="ghost"
             >
-              ↻ Replay
+              <ArrowsClockwise size={14} weight="bold" /> Replay
             </Button>
           )}
         </div>
