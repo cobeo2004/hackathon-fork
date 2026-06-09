@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { InlineMath } from "react-katex";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "~/trpc/client";
 import { HealthChart } from "./HealthChart";
@@ -18,6 +19,17 @@ import {
   type PvFaultTelemetry,
 } from "~/lib/pvFaultModel";
 import { breakingRiskMessage } from "~/lib/risk";
+
+// Debounce a rapidly-changing value so downstream effects (here: the network
+// scoring call) only fire once motion settles, instead of on every slider tick.
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
 
 type Scenario = {
   label: string;
@@ -123,11 +135,16 @@ export function SolutionSection() {
     "live" | "fallback" | "scoring"
   >("fallback");
 
+  // Slider drags update `telemetry` continuously (so the UI stays responsive),
+  // but we only POST to the model once the value settles — debounced — to avoid
+  // a burst of requests per drag.
+  const scoredTelemetry = useDebouncedValue(telemetry, 280);
+
   useEffect(() => {
     let cancelled = false;
     setModelStatus((status) => (status === "fallback" ? "fallback" : "scoring"));
 
-    predictPvFault(telemetry)
+    predictPvFault(scoredTelemetry)
       .then((prediction) => {
         if (!cancelled) {
           setMlPrediction(prediction);
@@ -136,7 +153,7 @@ export function SolutionSection() {
       })
       .catch(() => {
         if (!cancelled) {
-          setMlPrediction({ ...FALLBACK_PV_FAULT_PREDICTION, ...telemetry });
+          setMlPrediction({ ...FALLBACK_PV_FAULT_PREDICTION, ...scoredTelemetry });
           setModelStatus("fallback");
         }
       });
@@ -144,7 +161,7 @@ export function SolutionSection() {
     return () => {
       cancelled = true;
     };
-  }, [telemetry]);
+  }, [scoredTelemetry]);
 
   const displayFaultClass =
     mlPrediction.predicted_binary_label === "normal"
@@ -193,7 +210,7 @@ export function SolutionSection() {
         step={2}
         eyebrow="The solution"
         title="Predict the failure, then plan the smartest collection"
-        subtitle="Telemetry becomes a calibrated fault risk score, a fault type, a collection job, and a verifiable record — automatically."
+        subtitle="Telemetry becomes a calibrated fault risk score, a fault type, a collection job, and a verifiable record, automatically."
       />
 
       <Card className="p-5">
@@ -394,25 +411,29 @@ const ALGO_STEPS = [
     tag: "Predict",
     name: "Two-stage XGBoost",
     detail: "Normal/faulty risk, then fault type",
-    formula: "P(faulty) → class confidence",
+    formula: "P(\\text{faulty}) \\rightarrow \\text{class confidence}",
+    note: null,
   },
   {
     tag: "Filter",
     name: "Greedy knapsack",
     detail: "Pack stops under truck mass capacity",
-    formula: "Σ mass ≤ 2,500 kg, priority-first",
+    formula: "\\sum \\text{mass} \\le 2{,}500\\ \\text{kg}",
+    note: "priority-first",
   },
   {
     tag: "Optimize",
     name: "Exact brute-force TSP",
     detail: "Shortest depot → stops → centre",
-    formula: "min over all permutations (greedy NN fallback)",
+    formula: "\\min_{\\text{perms}} \\sum d_{i,i+1}",
+    note: "greedy NN fallback",
   },
   {
     tag: "Measure",
     name: "Haversine distance",
     detail: "Great-circle km between sites",
-    formula: "2r·asin(√hav(Δφ,Δλ))",
+    formula: "2r\\,\\arcsin\\!\\sqrt{\\operatorname{hav}(\\Delta\\varphi,\\Delta\\lambda)}",
+    note: null,
   },
 ];
 
@@ -445,9 +466,14 @@ function AlgorithmStrip() {
             <div className="mt-1 text-[12px] leading-snug text-muted">
               {a.detail}
             </div>
-            <code className="mt-2 block rounded bg-ink/[0.04] px-2 py-1 font-mono text-[10px] leading-snug text-ink/70">
-              {a.formula}
-            </code>
+            <div className="algo-formula mt-2 flex items-center overflow-x-auto rounded bg-ink/[0.04] px-2 py-1.5 text-ink/75">
+              <InlineMath math={a.formula} />
+            </div>
+            {a.note ? (
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-wide text-muted/80">
+                {a.note}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

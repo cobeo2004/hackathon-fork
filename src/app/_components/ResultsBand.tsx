@@ -75,7 +75,10 @@ function BarPairCard({
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "center center"],
+    // Fill completes when the card top reaches viewport-middle, so on tall mobile
+    // viewports the bars are full while the card is comfortably in view — not only
+    // once its center is dead-centre (which lands far down the section on mobile).
+    offset: ["start end", "start center"],
   });
   // Fill tracks scroll 0→1 as the card rises to centered, holds full while centered,
   // and unwinds on scroll-up. Spring-smoothed.

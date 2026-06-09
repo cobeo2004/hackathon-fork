@@ -49,7 +49,7 @@ export function DemoSection() {
       <SectionLead
         step={3}
         eyebrow="The demo"
-        title="Same job, same truck — watch ours finish cheaper"
+        title="Same job, same truck. Watch ours finish cheaper"
         subtitle="Both trucks recover the same 1,980 kg. Red is today's reactive route; blue is SolarCycle AI. Only the routing strategy changes."
       />
 
@@ -61,7 +61,7 @@ export function DemoSection() {
         product mix, and facility locations.{" "}
         <strong>
           Site locations, risk scores, collection status, and mass are illustrative demo
-          scenarios — CER data only supports postcode-level install counts and age
+          scenarios. CER data only supports postcode-level install counts and age
           cohorts.
         </strong>{" "}
         Facility locations are real. Solar-specific acceptance and daily processing
@@ -184,7 +184,7 @@ export function DemoSection() {
 
       <DataNote
         real="depot & recycling centre locations (Cleanaway Laverton; Lotus Recycling, Campbellfield); postcode install counts & pre-2011 EOL cohort (Clean Energy Regulator)"
-        illustrative="site risk scores, mass estimates, status, EOL windows, collection windows, route distances/costs, and facility processing capacity — all illustrative demo assumptions"
+        illustrative="site risk scores, mass estimates, status, EOL windows, collection windows, route distances/costs, and facility processing capacity. All illustrative demo assumptions"
         source="Cleanaway & Lotus Recycling (public sites); CER SRES postcode data (to Apr 2026); road geometry via OSRM public router, straight-line fallback when offline"
       />
     </div>

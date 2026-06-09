@@ -55,45 +55,49 @@ export function CompareTable({
   ];
   return (
     <Card className="mt-5 overflow-hidden p-0">
-      <div className="grid grid-cols-[1.1fr_1fr_1fr_auto] items-center gap-x-4 border-b border-line bg-paper/60 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
-        <span>Metric</span>
-        <span className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ background: baselineColor }}
-          />
-          Reactive (today)
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ background: optimizedColor }}
-          />
-          SolarCycle AI
-        </span>
-        <span className="text-right text-recover">Gain</span>
-      </div>
-      {rows.map((r, i) => (
-        <div
-          key={r.metric}
-          className={`grid grid-cols-[1.1fr_1fr_1fr_auto] items-center gap-x-4 px-5 py-3 ${
-            i < rows.length - 1 ? "border-b border-line" : ""
-          }`}
-        >
-          <span className="font-mono text-[11px] uppercase tracking-wide text-muted">
-            {r.metric}
-          </span>
-          <span className="text-[15px] text-ink/70 line-through decoration-risk/40">
-            {r.base}
-          </span>
-          <span className="font-display text-base font-extrabold tracking-tight text-ink">
-            {r.ours}
-          </span>
-          <span className="justify-self-end rounded-full bg-[#e7f3ec] px-2.5 py-0.5 font-mono text-[11px] font-semibold text-recover">
-            {r.delta}
-          </span>
+      <div className="overflow-x-auto">
+        <div className="min-w-[560px]">
+          <div className="grid grid-cols-[1.1fr_1fr_1fr_5.5rem] items-center gap-x-4 border-b border-line bg-paper/60 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
+            <span className="min-w-0">Metric</span>
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span
+                className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ background: baselineColor }}
+              />
+              Reactive (today)
+            </span>
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span
+                className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ background: optimizedColor }}
+              />
+              SolarCycle AI
+            </span>
+            <span className="text-right text-recover">Gain</span>
+          </div>
+          {rows.map((r, i) => (
+            <div
+              key={r.metric}
+              className={`grid grid-cols-[1.1fr_1fr_1fr_5.5rem] items-center gap-x-4 px-5 py-3 ${
+                i < rows.length - 1 ? "border-b border-line" : ""
+              }`}
+            >
+              <span className="min-w-0 font-mono text-[11px] uppercase tracking-wide text-muted">
+                {r.metric}
+              </span>
+              <span className="min-w-0 text-[15px] text-ink/70 line-through decoration-risk/40">
+                {r.base}
+              </span>
+              <span className="min-w-0 font-display text-base font-extrabold tracking-tight text-ink">
+                {r.ours}
+              </span>
+              <span className="justify-self-end rounded-full bg-[#e7f3ec] px-2.5 py-0.5 text-center font-mono text-[11px] font-semibold text-recover">
+                {r.delta}
+              </span>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </Card>
   );
 }

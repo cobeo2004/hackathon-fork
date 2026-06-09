@@ -5,6 +5,7 @@ import "./globals.css";
 import { TRPCReactProvider } from "~/trpc/client";
 import Image from "next/image";
 import { RouteTransition } from "./_components/RouteTransition";
+import { MobileNav } from "./_components/MobileNav";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -23,8 +24,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SolarCycle AI — Predict failures. Plan collections. Recover value.",
-  description: "Predict · Plan · Recover — solar lifecycle & recovery",
+  title: "SolarCycle AI: Predict failures. Plan collections. Recover value.",
+  description: "Predict · Plan · Recover. Solar lifecycle & recovery",
   icons: { icon: "/sun.svg" },
 };
 
@@ -63,7 +64,7 @@ export default function RootLayout({
                   </div>
                 </Link>
 
-                <nav className="flex items-center gap-1 rounded-lg border border-line bg-panel p-1">
+                <nav className="hidden items-center gap-1 rounded-lg border border-line bg-panel p-1 md:flex">
                   {SECTIONS.map((s, i) => (
                     <Link
                       key={s.href}
@@ -75,6 +76,8 @@ export default function RootLayout({
                     </Link>
                   ))}
                 </nav>
+
+                <MobileNav />
               </div>
             </header>
 
