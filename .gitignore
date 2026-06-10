@@ -10,10 +10,14 @@ next-env.d.ts
 Thumbs.db
 ~$*.xlsx
 *.tmp
+*.log
 
 # Local screenshots/debug captures
 app/debug-*.png
 debug-*.png
+
+# Local legacy/dev workspace
+_app-legacy/
 
 .omc/
 docs/superpowers/
