@@ -30,7 +30,7 @@ export const DEMO_FIELD_PROVENANCE = {
   synthetic_site_estimates: {
     fields: ["installed_capacity_kw", "eol_mass_kg_estimate", "telemetry_snapshot"] as const,
     source: "synthetic" as const,
-    label: "Synthetically generated, not sourced from real sensor or facility data",
+    label: "Synthetically generated — not sourced from real sensor or facility data",
     method:
       "installed_capacity_kw = postcode_installs × 6.6 kW (ARENA/CER 2023 avg system size); " +
       "eol_mass_kg_estimate = eol_cohort × 320 kg (16 panels × 20 kg/panel, industry avg); " +
@@ -177,25 +177,39 @@ export const VEHICLE: Vehicle = {
 
 export const COLLECTION_SITE_IDS = SITES.map((s) => s.site_id);
 
+// total_cost_aud is computed from routeCost() at full distance so the preview
+// cards and post-simulation cards show the same number (no jump on run-end).
+// Formula: distance × $0.95/km + (distance/55 km/h) × $45/hr + stops × handling + $25/dispatch
+//
+// Reactive route: 4 separate trips dispatched as fault reports arrive.
+// The truck returns to depot between each batch — exactly as a reactive dispatcher works.
+// Contrast with the single AI-planned campaign below.
+// Cost: 380×0.95 + (380/55)×45 + 9×15 + 4×25 = $361 + $311 + $135 + $100 = $907
 export const BASELINE_ROUTE: Route = {
   route_id: "BASELINE_001",
-  label: "Current postcode-by-postcode planning",
+  label: "Reactive dispatch (4 separate trips)",
   strategy: "baseline",
   color: "#dc2626",
-  total_distance_km: 180,
-  total_cost_aud: 420,
+  total_distance_km: 380,
+  total_cost_aud: 907,
   collected_mass_kg: CER_TOTAL_EOL_COHORT,
   stops: [
     "DEPOT_1",
-    "POA_3012",
-    "POA_3020",
-    "POA_3029",
-    "POA_3039",
-    "POA_3058",
-    "POA_3061",
-    "POA_3072",
-    "POA_3337",
-    "POA_3752",
+    "POA_3752",  // trip 1 — Whittlesea (NE): first fault report
+    "RC_001",
+    "DEPOT_1",   // ← return to depot, new dispatch
+    "POA_3337",  // trip 2 — Melton (W)
+    "POA_3029",  //           Wyndham (SW): two reports batch
+    "RC_001",
+    "DEPOT_1",   // ← return to depot, new dispatch
+    "POA_3072",  // trip 3 — Darebin (NE)
+    "POA_3061",  //           Hume (N)
+    "POA_3058",  //           Merri-bek (N): three reports batch
+    "RC_001",
+    "DEPOT_1",   // ← return to depot, new dispatch
+    "POA_3020",  // trip 4 — Brimbank (W)
+    "POA_3039",  //           Moonee Valley (central)
+    "POA_3012",  //           Maribyrnong (W): three reports batch
     "RC_001",
   ],
 };
@@ -206,7 +220,7 @@ export const OPTIMIZED_ROUTE: Route = {
   strategy: "optimized",
   color: "#2563eb",
   total_distance_km: 130,
-  total_cost_aud: 300,
+  total_cost_aud: 309,
   collected_mass_kg: CER_TOTAL_EOL_COHORT,
   stops: [
     "DEPOT_1",

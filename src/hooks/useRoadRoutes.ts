@@ -28,18 +28,25 @@ export interface RoadRoutesState {
 }
 
 function comparisonFor(baseline: RoadRoute, optimized: RoadRoute): RoadRoutesState["comparison"] {
-  const collectionStops = Math.max(0, optimized.stops.length - 2);
+  // Recompute costs with OSRM distances; stop counts and dispatch counts mirror
+  // the canonical route structure (same logic as buildComparison in cost.ts).
+  const baselineCollectionStops = BASELINE_ROUTE.stops.filter((s) => s.startsWith("POA_")).length;
+  const optimizedCollectionStops = OPTIMIZED_ROUTE.stops.filter((s) => s.startsWith("POA_")).length;
+  const baselineTrips = 1 + BASELINE_ROUTE.stops.filter((s, i) => s === "DEPOT_1" && i > 0).length;
+
   const baselineCost = routeCost({
     distance_km: baseline.distanceKm,
     duration_min: baseline.durationMin ?? (baseline.distanceKm / COSTS.fallback_average_speed_kmh) * 60,
-    collection_stops: collectionStops,
+    collection_stops: baselineCollectionStops,
     handling_per_stop: COSTS.baseline_handling_per_stop,
+    dispatch_count: baselineTrips,
   });
   const optimizedCost = routeCost({
     distance_km: optimized.distanceKm,
     duration_min: optimized.durationMin ?? (optimized.distanceKm / COSTS.fallback_average_speed_kmh) * 60,
-    collection_stops: collectionStops,
+    collection_stops: optimizedCollectionStops,
     handling_per_stop: COSTS.optimized_handling_per_stop,
+    dispatch_count: 1,
   });
 
   return {

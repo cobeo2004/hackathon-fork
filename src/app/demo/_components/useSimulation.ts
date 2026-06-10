@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BASELINE_ROUTE, COSTS, OPTIMIZED_ROUTE, POINTS_BY_ID } from "~/data/demo";
 import type { Route } from "~/data/types";
 import { haversineKm, lerpLatLon, type LatLon } from "~/lib/geo";
+import { routeCost } from "~/lib/cost";
 
 const BASELINE_SECONDS = 13; // wall-clock duration of the baseline run at 1x speed
 const SAMPLE_INTERVAL_MS = 180; // how often the charts get a new data point
@@ -49,8 +50,10 @@ type FrameListener = (f: FrameState) => void;
 interface RouteGeometry {
   segs: { a: LatLon; b: LatLon; len: number; startKm: number }[];
   totalKm: number;
+  totalDurationMin: number;
   handlingPerStop: number;
-  collectionStopBoundaries: number[]; // cumulative km at which a collection stop is reached
+  collectionStopBoundaries: number[]; // cumulative km at which a POA_ collection stop is reached
+  depotDepartureBoundaries: number[]; // cumulative km at which the truck arrives at an intermediate depot (new dispatch)
 }
 
 function buildGeometry(route: Route, handlingPerStop: number): RouteGeometry {
@@ -66,20 +69,25 @@ function buildGeometry(route: Route, handlingPerStop: number): RouteGeometry {
 
   const segs: RouteGeometry["segs"] = [];
   const collectionStopBoundaries: number[] = [];
+  const depotDepartureBoundaries: number[] = [];
   let startKm = 0;
   for (let i = 1; i < pts.length; i++) {
     const len = rawLens[i - 1] * scale;
     segs.push({ a: pts[i - 1], b: pts[i], len, startKm });
     startKm += len;
-    // stops between depot (index 0) and recycling centre (last) are collection stops
-    if (i < pts.length - 1) collectionStopBoundaries.push(startKm);
+    // Only POA_ stops are collection stops (depot returns and mid-route RCs are not)
+    if (route.stops[i].startsWith("POA_")) collectionStopBoundaries.push(startKm);
+    // Intermediate depot arrivals mark the start of a new dispatch
+    if (i > 0 && route.stops[i] === "DEPOT_1") depotDepartureBoundaries.push(startKm);
   }
 
   return {
     segs,
     totalKm: route.total_distance_km,
+    totalDurationMin: (route.total_distance_km / COSTS.fallback_average_speed_kmh) * 60,
     handlingPerStop,
     collectionStopBoundaries,
+    depotDepartureBoundaries,
   };
 }
 
@@ -98,8 +106,15 @@ function truckAt(geo: RouteGeometry, distanceKm: number): TruckState {
 
 function costAt(geo: RouteGeometry, distanceKm: number): number {
   const d = Math.min(distanceKm, geo.totalKm);
-  const stopsDone = geo.collectionStopBoundaries.filter((b) => d >= b).length;
-  return COSTS.dispatch_per_route + d * COSTS.vehicle_operating_cost_per_km + stopsDone * geo.handlingPerStop;
+  const stopsDone = (geo.collectionStopBoundaries ?? []).filter((b) => d >= b).length;
+  const dispatchCount = 1 + (geo.depotDepartureBoundaries ?? []).filter((b) => d >= b).length;
+  return routeCost({
+    distance_km: d,
+    duration_min: geo.totalKm > 0 ? (d / geo.totalKm) * geo.totalDurationMin : 0,
+    collection_stops: stopsDone,
+    handling_per_stop: geo.handlingPerStop,
+    dispatch_count: dispatchCount,
+  });
 }
 
 export function useSimulation() {
@@ -192,8 +207,8 @@ export function useSimulation() {
         // Pin the final sample to exact canonical totals.
         const finalSample: SimSample = {
           t: Math.round(t * 10) / 10,
-          baselineCost: BASELINE_ROUTE.total_cost_aud,
-          optimizedCost: OPTIMIZED_ROUTE.total_cost_aud,
+          baselineCost: Math.round(costAt(baseGeo.current, baseGeo.current.totalKm)),
+          optimizedCost: Math.round(costAt(optGeo.current, optGeo.current.totalKm)),
           baselineDist: BASELINE_ROUTE.total_distance_km,
           optimizedDist: OPTIMIZED_ROUTE.total_distance_km,
         };

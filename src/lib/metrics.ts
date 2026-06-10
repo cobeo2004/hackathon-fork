@@ -33,7 +33,7 @@ export function dashboardMetrics() {
     (sum, s) => sum + (s.eol_mass_kg_estimate ?? s.total_mass_kg),
     0,
   );
-  const comparison = buildComparison(readyForCollection.length);
+  const comparison = buildComparison();
 
   return {
     totalSites: SITES.length,

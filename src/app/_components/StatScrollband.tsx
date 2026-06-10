@@ -21,7 +21,7 @@ import { buildComparison } from "~/lib/cost";
 import { formatNumber } from "~/lib/format";
 import { MotionProvider } from "./motion-features";
 
-const comparison = buildComparison(4);
+const comparison = buildComparison();
 
 const FIGURES = [
   {

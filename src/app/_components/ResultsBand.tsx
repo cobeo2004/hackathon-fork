@@ -17,7 +17,7 @@ import { buildComparison } from "~/lib/cost";
 import { Card } from "~/components/ui";
 import { MotionProvider, useScrubbedReveal } from "./motion-features";
 
-const c = buildComparison(4);
+const c = buildComparison();
 
 export function ResultsBand() {
   const headRef = useRef<HTMLDivElement>(null);
