@@ -15,6 +15,11 @@ Thumbs.db
 # Local screenshots/debug captures
 app/debug-*.png
 debug-*.png
+shots/
+sp-shot*.png
+sp-shot.mjs
+spark-shot.mjs
+verify-home.mjs
 
 # Local legacy/dev workspace
 _app-legacy/

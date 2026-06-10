@@ -6,6 +6,7 @@ import { TRPCReactProvider } from "~/trpc/client";
 import Image from "next/image";
 import { RouteTransition } from "./_components/RouteTransition";
 import { MobileNav } from "./_components/MobileNav";
+import { ClickSpark } from "./_components/ClickSpark";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -49,6 +50,8 @@ export default function RootLayout({
         <TRPCReactProvider>
           {/* Direction-aware route slide-over (client island; PPR-safe). */}
           <RouteTransition />
+          {/* Amber energy burst on every click (client island; PPR-safe). */}
+          <ClickSpark />
           <div className="min-h-full">
             <header className="sticky top-0 z-[1000] border-b border-line bg-paper/85 backdrop-blur-md">
               <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">

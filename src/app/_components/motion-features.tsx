@@ -10,10 +10,11 @@ import {
   useScroll,
   useSpring,
   useTransform,
+  useMotionValue,
   useReducedMotion,
   type MotionValue,
 } from "motion/react";
-import type { ReactNode, RefObject } from "react";
+import type { PointerEvent, ReactNode, RefObject } from "react";
 
 export function MotionProvider({ children }: { children: ReactNode }) {
   return <LazyMotion features={domAnimation}>{children}</LazyMotion>;
@@ -63,4 +64,33 @@ export function useParallax(
   const smooth = useSpring(scrollYProgress, SPRING);
   const y = useTransform(smooth, [0, 1], [-distance, distance]);
   return reduce ? 0 : y;
+}
+
+/**
+ * Magnetic pull for CTAs: the element drifts a few px toward the cursor while
+ * hovered and springs back on leave. Mouse pointers only; reduced motion → inert.
+ * Spread the returned handlers + style onto an `m.*` wrapper.
+ */
+export function useMagnetic(strength = 0.25, max = 9) {
+  const reduce = useReducedMotion();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const x = useSpring(mx, { stiffness: 280, damping: 18 });
+  const y = useSpring(my, { stiffness: 280, damping: 18 });
+
+  function onPointerMove(e: PointerEvent<HTMLElement>) {
+    if (reduce || e.pointerType !== "mouse") return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const dx = (e.clientX - (r.left + r.width / 2)) * strength;
+    const dy = (e.clientY - (r.top + r.height / 2)) * strength;
+    mx.set(Math.max(-max, Math.min(max, dx)));
+    my.set(Math.max(-max, Math.min(max, dy)));
+  }
+
+  function onPointerLeave() {
+    mx.set(0);
+    my.set(0);
+  }
+
+  return { style: { x, y }, onPointerMove, onPointerLeave };
 }

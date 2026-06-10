@@ -58,8 +58,8 @@ spacing:
   page-pad-y: "56px"       # py-14 main padding
 
 radius:
-  md: "0.5rem"   # rounded-lg — buttons, nav items, small chips
-  lg: "0.75rem"  # rounded-xl — cards
+  md: "0.375rem" # rounded-lg — buttons, nav items, small chips (tightened via --radius-lg override)
+  lg: "0.5rem"   # rounded-xl — cards (tightened via --radius-xl override)
   pill: "9999px" # rounded-full — risk badges, glow halos
 
 elevation:
@@ -114,6 +114,13 @@ meaning.
 - Motion on the landing page is **scroll-linked (scrubbed)**: effects are bound to scroll position, so they play in on scroll-down and **reverse** on scroll-up — layered parallax, a sticky/pinned figures section, scrubbed bars, a progress rail. All spring-smoothed and reduced-motion-guarded.
 
 ## Colors
+
+### Material colors (figures only)
+Deep PV-blue (`#1e3a8a` → `#2563eb` → `#3b82f6`) is permitted ONLY as a *material*
+color inside product figures — the silicon of solar-panel cells (`PanelLayers`,
+the hero solar-farm field). It is NOT a UI accent: interface blue still means
+"optimized route" (`{colors.route}`) and nothing else. Likewise the hero scene's
+sky/night palette (navy `#0b1026`, dusk ambers) is scenery, not UI.
 
 ### Brand & semantic — each means ONE thing
 - **Solar** (`{colors.solar}` #e07c08) — the brand amber. Eyebrows, accent spans in headlines, "ageing/watch" states, hover targets. The only brand color; do not introduce a second.
@@ -186,7 +193,27 @@ reveals.
 - **Sticky-scrub section:** the stat centerpiece — a tall outer container
   (`min-h ~300vh`) with an inner `sticky top-0 h-screen`; section progress
   (`offset: ["start start","end end"]`) reveals figures one band at a time.
+- **Hero scene (pinned day→night):** the hero is a full-bleed pinned scene
+  (~250vh): one scrubbed progress value moves the sun left→right on a parabolic
+  arc, crossfades the sky day→dusk→midnight (stars + moon at night), tilts the
+  solar-field panels to track the sun (−18°→+18°, shared MotionValue), and flips
+  the centred headline/CTAs ink→paper via color-interpolating MotionValues.
+  Fully reversible on scroll-up. Reduced motion → unpinned static golden-hour
+  scene (progress frozen at 0.25), ink text, full content. The scene is pure
+  CSS/SVG (no WebGL): field panels are warm-ink faces with a brand-amber cell
+  grid, and the scene starts at the page top, behind the translucent sticky
+  header.
 - **Progress rail:** a fixed top bar whose `scaleX` = page `scrollYProgress` (amber).
+- **Click energy burst:** every pointer-down fires a ~500ms amber spark at the
+  cursor (`ClickSpark` island, site-wide): white-hot core flash + expanding ring
+  + six rays — the sun glyph, animated. Pure CSS keyframes (`spark-*` in
+  `globals.css`), house easing, removed on animation end, fully disabled under
+  reduced motion. Amber only — never green/red (those carry meaning).
+- **Custom cursor:** the brand logo spark (six amber petals + center dot on a
+  white halo) site-wide; interactive targets get the same glyph inside an amber
+  sighting ring. Pure CSS `cursor: url(data:image/svg+xml;base64,…)` — no JS
+  follower, zero lag. base64 is required: raw utf8 SVG data URIs are silently
+  rejected as cursor images by Chrome/Safari.
 - **Reduced motion:** **mandatory.** `useReducedMotion()` makes every hook return
   static literals (no scrub, no parallax) and the sticky band falls back to a plain
   readable grid — full content, no movement. The CSS `prefers-reduced-motion` guard in
