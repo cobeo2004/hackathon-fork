@@ -7,6 +7,8 @@ import { useTRPC } from "~/trpc/client";
 import { ArrowsClockwise, Play } from "@phosphor-icons/react/dist/ssr";
 import { useSimulation } from "./useSimulation";
 import { useRoadRoutes } from "~/hooks/useRoadRoutes";
+import { BASELINE_ROUTE, OPTIMIZED_ROUTE } from "~/data/demo";
+import { buildComparison } from "~/lib/cost";
 import { Button, Card, DataNote, Disclaimer, SectionLead } from "~/components/ui";
 import { formatNumber } from "~/lib/format";
 import { TruckStat } from "./TruckStat";
@@ -17,7 +19,6 @@ const MapView = dynamic(() => import("./MapView").then((m) => m.MapView), { ssr:
 export function DemoSection() {
   const trpc = useTRPC();
   const { data: routes } = useQuery(trpc.routes.pair.queryOptions());
-  const { data: comparison } = useQuery(trpc.comparison.summary.queryOptions());
   const { data: featured } = useQuery(trpc.health.featured.queryOptions());
 
   const sim = useSimulation();
@@ -27,23 +28,50 @@ export function DemoSection() {
   // fallback so the demo still works offline.
   const road = useRoadRoutes();
 
-  if (!routes || !comparison) return null;
+  if (!routes) return null;
+
+  const comparison = road.comparison;
 
   const failDays = featured?.asset.estimated_failure_window_days ?? 21;
 
   const latest = series[series.length - 1];
 
-  // Live figures: while idle, preview the planned route totals so the cards are never
-  // a confusing "0"; once running they follow the live totals and settle on the result.
+  // Distance: scale sim's canonical km to OSRM km via progress ratio.
+  // Cost: use the sim's step-function values (which jump at each collection stop and
+  // each depot dispatch), scaled so they land on the OSRM-based final cost.
   const preview = status === "idle";
-  const baseDist =
-    latest?.baselineDist ?? (preview ? routes.baseline.total_distance_km : 0);
-  const optDist =
-    latest?.optimizedDist ?? (preview ? routes.optimized.total_distance_km : 0);
+
+  const baseProg =
+    status === "done" || preview
+      ? 1
+      : Math.min(1, (latest?.baselineDist ?? 0) / BASELINE_ROUTE.total_distance_km);
+  const optProg =
+    status === "done" || preview
+      ? 1
+      : Math.min(1, (latest?.optimizedDist ?? 0) / OPTIMIZED_ROUTE.total_distance_km);
+
+  const baseDist = baseProg * comparison.baselineDistance;
+  const optDist = optProg * comparison.optimizedDistance;
+
+  // Fixed scale: sim computes cost against canonical km; OSRM km differ.
+  // Dividing by the canonical final cost and multiplying by the OSRM final cost
+  // preserves the step-function shape while landing on the correct OSRM total.
+  const canonical = buildComparison();
+  const baseCostScale = canonical.baselineCost > 0
+    ? comparison.baselineCost / canonical.baselineCost
+    : 1;
+  const optCostScale = canonical.optimizedCost > 0
+    ? comparison.optimizedCost / canonical.optimizedCost
+    : 1;
+
   const baseCost =
-    latest?.baselineCost ?? (preview ? routes.baseline.total_cost_aud : 0);
+    status === "done" || preview
+      ? comparison.baselineCost
+      : (latest?.baselineCost ?? 0) * baseCostScale;
   const optCost =
-    latest?.optimizedCost ?? (preview ? routes.optimized.total_cost_aud : 0);
+    status === "done" || preview
+      ? comparison.optimizedCost
+      : (latest?.optimizedCost ?? 0) * optCostScale;
 
   return (
     <div>
@@ -51,7 +79,7 @@ export function DemoSection() {
         step={3}
         eyebrow="The demo"
         title="Same job, same truck. Watch ours finish cheaper"
-        subtitle="Both trucks recover the same 1,980 kg. Red is today's reactive route; blue is SolarCycle AI. Only the routing strategy changes."
+        subtitle="Same panels, same payload — 1,980 kg recovered. Red shows 4 reactive trips dispatched as fault reports arrive; blue is one AI-planned collection campaign."
       />
 
       <Disclaimer label="No real mass data">
@@ -188,6 +216,10 @@ export function DemoSection() {
         baselineColor={routes.baseline.color}
         optimizedColor={routes.optimized.color}
         failDays={failDays}
+        baseDist={baseDist}
+        optDist={optDist}
+        baseCost={baseCost}
+        optCost={optCost}
       />
 
       <DataNote

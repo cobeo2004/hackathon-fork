@@ -395,8 +395,13 @@ export function SolutionSection() {
       </div>
 
       <Card className="mt-5 p-5">
-        <div className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
-          Inverter health trend (featured asset)
+        <div className="mb-3">
+          <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            Inverter health trend (featured asset)
+          </div>
+          <div className="mt-0.5 font-mono text-[10px] text-muted/60">
+            Wyndham synthetic session · not real sensor data
+          </div>
         </div>
         <HealthChart readings={featured.readings} />
       </Card>

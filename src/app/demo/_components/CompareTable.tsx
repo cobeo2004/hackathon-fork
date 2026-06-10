@@ -9,12 +9,24 @@ export function CompareTable({
   baselineColor,
   optimizedColor,
   failDays,
+  baseDist,
+  optDist,
+  baseCost,
+  optCost,
 }: {
   comparison: Comparison;
   baselineColor: string;
   optimizedColor: string;
   failDays: number;
+  baseDist?: number;
+  optDist?: number;
+  baseCost?: number;
+  optCost?: number;
 }) {
+  const displayBaseDist = baseDist ?? comparison.baselineDistance;
+  const displayOptDist = optDist ?? comparison.optimizedDistance;
+  const displayBaseCost = baseCost ?? comparison.baselineCost;
+  const displayOptCost = optCost ?? comparison.optimizedCost;
   const rows: Row[] = [
     {
       metric: "When you act",
@@ -30,14 +42,14 @@ export function CompareTable({
     },
     {
       metric: "Route distance",
-      base: `${comparison.baselineDistance} km`,
-      ours: `${comparison.optimizedDistance} km`,
+      base: `${displayBaseDist.toFixed(1)} km`,
+      ours: `${displayOptDist.toFixed(1)} km`,
       delta: `−${comparison.distanceReductionPct.toFixed(0)}%`,
     },
     {
-      metric: "Cost per run",
-      base: `A$${Math.round(comparison.baselineCost)}`,
-      ours: `A$${Math.round(comparison.optimizedCost)}`,
+      metric: "Est. cost per run",
+      base: `A$${Math.round(displayBaseCost)}`,
+      ours: `A$${Math.round(displayOptCost)}`,
       delta: `−${comparison.costReductionPct.toFixed(0)}%`,
     },
     {

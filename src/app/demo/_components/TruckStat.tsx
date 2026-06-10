@@ -26,16 +26,16 @@ export function TruckStat({
             Distance
           </div>
           <div className="font-display text-2xl font-extrabold tabular-nums text-ink">
-            {distance}{" "}
+            {typeof distance === "number" ? distance.toFixed(1) : distance}{" "}
             <span className="text-base text-muted">km</span>
           </div>
         </div>
         <div>
           <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
-            Cost
+            Est. cost
           </div>
           <div className="font-display text-2xl font-extrabold tabular-nums text-ink">
-            A${cost}
+            A${Math.round(cost)}
           </div>
         </div>
       </div>
