@@ -2,7 +2,13 @@ import type { Comparison } from "~/lib/cost";
 import { Card } from "~/components/ui";
 import { formatNumber } from "~/lib/format";
 
-type Row = { metric: string; base: string; ours: string; delta: string };
+type Row = {
+  metric: string;
+  base: string;
+  ours: string;
+  delta: string;
+  strikeBase?: boolean;
+};
 
 export function CompareTable({
   comparison,
@@ -33,24 +39,34 @@ export function CompareTable({
       base: "After it fails",
       ours: `~${failDays} days early`,
       delta: "Predictive",
+      strikeBase: true,
     },
     {
       metric: "Dispatch",
-      base: "One job at a time",
-      ours: "One optimized plan",
+      base: `${comparison.baselineDispatches} reactive trips`,
+      ours: `${comparison.optimizedDispatches} campaign`,
       delta: "Coordinated",
+      strikeBase: true,
+    },
+    {
+      metric: "Postcode revisits",
+      base: `${comparison.baselineDuplicatePostcodeStops} duplicate stops`,
+      ours: `${comparison.optimizedDuplicatePostcodeStops} duplicate stops`,
+      delta: "Fair",
     },
     {
       metric: "Route distance",
       base: `${displayBaseDist.toFixed(1)} km`,
       ours: `${displayOptDist.toFixed(1)} km`,
-      delta: `−${comparison.distanceReductionPct.toFixed(0)}%`,
+      delta: `-${comparison.distanceReductionPct.toFixed(0)}%`,
+      strikeBase: true,
     },
     {
       metric: "Est. cost per run",
       base: `A$${Math.round(displayBaseCost)}`,
       ours: `A$${Math.round(displayOptCost)}`,
-      delta: `−${comparison.costReductionPct.toFixed(0)}%`,
+      delta: `-${comparison.costReductionPct.toFixed(0)}%`,
+      strikeBase: true,
     },
     {
       metric: "Mass recovered",
@@ -63,6 +79,7 @@ export function CompareTable({
       base: "None",
       ours: "Digital passport",
       delta: "Provable",
+      strikeBase: true,
     },
   ];
   return (
@@ -97,7 +114,11 @@ export function CompareTable({
               <span className="min-w-0 font-mono text-[11px] uppercase tracking-wide text-muted">
                 {r.metric}
               </span>
-              <span className="min-w-0 text-[15px] text-ink/70 line-through decoration-risk/40">
+              <span
+                className={`min-w-0 text-[15px] text-ink/70 ${
+                  r.strikeBase ? "line-through decoration-risk/40" : ""
+                }`}
+              >
                 {r.base}
               </span>
               <span className="min-w-0 font-display text-base font-extrabold tracking-tight text-ink">

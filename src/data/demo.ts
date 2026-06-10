@@ -182,7 +182,8 @@ export const COLLECTION_SITE_IDS = SITES.map((s) => s.site_id);
 // Formula: distance × $0.95/km + (distance/55 km/h) × $45/hr + stops × handling + $25/dispatch
 //
 // Reactive route: 4 separate trips dispatched as fault reports arrive.
-// The truck returns to depot between each batch — exactly as a reactive dispatcher works.
+// Each postcode demand area is collected once. The repeated stops are depot/recycler
+// returns between batches, and those extra dispatch costs are counted below.
 // Contrast with the single AI-planned campaign below.
 // Cost: 380×0.95 + (380/55)×45 + 9×15 + 4×25 = $361 + $311 + $135 + $100 = $907
 export const BASELINE_ROUTE: Route = {

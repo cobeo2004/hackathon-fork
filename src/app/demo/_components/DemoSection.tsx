@@ -13,6 +13,7 @@ import { Button, Card, DataNote, Disclaimer, SectionLead } from "~/components/ui
 import { formatNumber } from "~/lib/format";
 import { TruckStat } from "./TruckStat";
 import { CompareTable } from "./CompareTable";
+import { RouteTrace } from "./RouteTrace";
 
 const MapView = dynamic(() => import("./MapView").then((m) => m.MapView), { ssr: false });
 
@@ -79,7 +80,7 @@ export function DemoSection() {
         step={3}
         eyebrow="The demo"
         title="Same job, same truck. Watch ours finish cheaper"
-        subtitle="Same panels, same payload — 1,980 kg recovered. Red shows 4 reactive trips dispatched as fault reports arrive; blue is one AI-planned collection campaign."
+        subtitle="Same postcode demand areas, same payload, no duplicate postcode pickups. Red pays for 4 reactive depot-to-recycler trips as fault reports arrive; blue is one AI-planned collection campaign."
       />
 
       <Disclaimer label="No real mass data">
@@ -97,7 +98,7 @@ export function DemoSection() {
         <strong>
           Site locations, risk scores, collection status, and mass are illustrative demo
           scenarios. CER data only supports postcode-level install counts and age
-          cohorts.
+          cohorts, so each postcode demand area is collected once in both routes.
         </strong>{" "}
         Facility locations are real. Solar-specific acceptance and daily processing
         capacity are assumptions unless separately verified with the operator.
@@ -165,6 +166,11 @@ export function DemoSection() {
             networkGraph
             status={status}
             subscribe={subscribe}
+            baselineRoad={road.baseline}
+            optimizedRoad={road.optimized}
+          />
+          <RouteTrace
+            comparison={comparison}
             baselineRoad={road.baseline}
             optimizedRoad={road.optimized}
           />

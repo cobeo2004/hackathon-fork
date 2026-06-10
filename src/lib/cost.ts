@@ -1,6 +1,7 @@
 // Logistics cost model and baseline-vs-optimized comparison.
 
 import { BASELINE_ROUTE, COSTS, OPTIMIZED_ROUTE } from "../data/demo";
+import type { Route } from "../data/types";
 
 export interface CostInputs {
   distance_km: number;
@@ -33,31 +34,51 @@ export interface Comparison {
   optimizedDistance: number;
   distanceReductionPct: number;
   collectedMassKg: number;
+  baselineCollectionStops: number;
+  optimizedCollectionStops: number;
+  baselineUniquePostcodes: number;
+  optimizedUniquePostcodes: number;
+  baselineDuplicatePostcodeStops: number;
+  optimizedDuplicatePostcodeStops: number;
+  baselineDispatches: number;
+  optimizedDispatches: number;
+}
+
+export function collectionStopAudit(route: Pick<Route, "stops">) {
+  const collectionStops = route.stops.filter((s) => s.startsWith("POA_"));
+  const uniquePostcodes = new Set(collectionStops);
+  return {
+    collectionStops: collectionStops.length,
+    uniquePostcodes: uniquePostcodes.size,
+    duplicatePostcodeStops: collectionStops.length - uniquePostcodes.size,
+  };
+}
+
+export function dispatchCount(route: Pick<Route, "stops">): number {
+  return 1 + route.stops.filter((s, i) => s === "DEPOT_1" && i > 0).length;
 }
 
 /** Full headline comparison derived from the canonical route constants. */
 export function buildComparison(): Comparison {
   const baselineDistance = BASELINE_ROUTE.total_distance_km;
   const optimizedDistance = OPTIMIZED_ROUTE.total_distance_km;
-  // Only POA_ stops are collection stops — depot returns and RC mid-route are not.
-  const baselineCollectionStops = BASELINE_ROUTE.stops.filter((s) => s.startsWith("POA_")).length;
-  const optimizedCollectionStops = OPTIMIZED_ROUTE.stops.filter((s) => s.startsWith("POA_")).length;
-  // Each DEPOT_1 after index 0 is a new dispatch event.
-  const baselineTrips =
-    1 + BASELINE_ROUTE.stops.filter((s, i) => s === "DEPOT_1" && i > 0).length;
+  const baselineAudit = collectionStopAudit(BASELINE_ROUTE);
+  const optimizedAudit = collectionStopAudit(OPTIMIZED_ROUTE);
+  const baselineTrips = dispatchCount(BASELINE_ROUTE);
+  const optimizedTrips = dispatchCount(OPTIMIZED_ROUTE);
   const baselineCost = routeCost({
     distance_km: baselineDistance,
     duration_min: (baselineDistance / COSTS.fallback_average_speed_kmh) * 60,
-    collection_stops: baselineCollectionStops,
+    collection_stops: baselineAudit.collectionStops,
     handling_per_stop: COSTS.baseline_handling_per_stop,
     dispatch_count: baselineTrips,
   });
   const optimizedCost = routeCost({
     distance_km: optimizedDistance,
     duration_min: (optimizedDistance / COSTS.fallback_average_speed_kmh) * 60,
-    collection_stops: optimizedCollectionStops,
+    collection_stops: optimizedAudit.collectionStops,
     handling_per_stop: COSTS.optimized_handling_per_stop,
-    dispatch_count: 1,
+    dispatch_count: optimizedTrips,
   });
 
   return {
@@ -69,5 +90,13 @@ export function buildComparison(): Comparison {
     distanceReductionPct:
       ((baselineDistance - optimizedDistance) / baselineDistance) * 100,
     collectedMassKg: 1980,
+    baselineCollectionStops: baselineAudit.collectionStops,
+    optimizedCollectionStops: optimizedAudit.collectionStops,
+    baselineUniquePostcodes: baselineAudit.uniquePostcodes,
+    optimizedUniquePostcodes: optimizedAudit.uniquePostcodes,
+    baselineDuplicatePostcodeStops: baselineAudit.duplicatePostcodeStops,
+    optimizedDuplicatePostcodeStops: optimizedAudit.duplicatePostcodeStops,
+    baselineDispatches: baselineTrips,
+    optimizedDispatches: optimizedTrips,
   };
 }

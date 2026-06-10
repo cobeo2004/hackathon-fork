@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BASELINE_ROUTE, COSTS, OPTIMIZED_ROUTE } from "../data/demo";
-import { routeCost } from "../lib/cost";
+import { collectionStopAudit, dispatchCount, routeCost } from "../lib/cost";
 import { optimizedRoute } from "../lib/optimizer";
 import {
   fallbackRoadRoute,
@@ -24,29 +24,38 @@ export interface RoadRoutesState {
     distanceReductionPct: number;
     costReductionPct: number;
     collectedMassKg: number;
+    baselineCollectionStops: number;
+    optimizedCollectionStops: number;
+    baselineUniquePostcodes: number;
+    optimizedUniquePostcodes: number;
+    baselineDuplicatePostcodeStops: number;
+    optimizedDuplicatePostcodeStops: number;
+    baselineDispatches: number;
+    optimizedDispatches: number;
   };
 }
 
 function comparisonFor(baseline: RoadRoute, optimized: RoadRoute): RoadRoutesState["comparison"] {
   // Recompute costs with OSRM distances; stop counts and dispatch counts mirror
   // the canonical route structure (same logic as buildComparison in cost.ts).
-  const baselineCollectionStops = BASELINE_ROUTE.stops.filter((s) => s.startsWith("POA_")).length;
-  const optimizedCollectionStops = OPTIMIZED_ROUTE.stops.filter((s) => s.startsWith("POA_")).length;
-  const baselineTrips = 1 + BASELINE_ROUTE.stops.filter((s, i) => s === "DEPOT_1" && i > 0).length;
+  const baselineAudit = collectionStopAudit(BASELINE_ROUTE);
+  const optimizedAudit = collectionStopAudit(OPTIMIZED_ROUTE);
+  const baselineTrips = dispatchCount(BASELINE_ROUTE);
+  const optimizedTrips = dispatchCount(OPTIMIZED_ROUTE);
 
   const baselineCost = routeCost({
     distance_km: baseline.distanceKm,
     duration_min: baseline.durationMin ?? (baseline.distanceKm / COSTS.fallback_average_speed_kmh) * 60,
-    collection_stops: baselineCollectionStops,
+    collection_stops: baselineAudit.collectionStops,
     handling_per_stop: COSTS.baseline_handling_per_stop,
     dispatch_count: baselineTrips,
   });
   const optimizedCost = routeCost({
     distance_km: optimized.distanceKm,
     duration_min: optimized.durationMin ?? (optimized.distanceKm / COSTS.fallback_average_speed_kmh) * 60,
-    collection_stops: optimizedCollectionStops,
+    collection_stops: optimizedAudit.collectionStops,
     handling_per_stop: COSTS.optimized_handling_per_stop,
-    dispatch_count: 1,
+    dispatch_count: optimizedTrips,
   });
 
   return {
@@ -61,6 +70,14 @@ function comparisonFor(baseline: RoadRoute, optimized: RoadRoute): RoadRoutesSta
     costReductionPct:
       baselineCost > 0 ? ((baselineCost - optimizedCost) / baselineCost) * 100 : 0,
     collectedMassKg: OPTIMIZED_ROUTE.collected_mass_kg,
+    baselineCollectionStops: baselineAudit.collectionStops,
+    optimizedCollectionStops: optimizedAudit.collectionStops,
+    baselineUniquePostcodes: baselineAudit.uniquePostcodes,
+    optimizedUniquePostcodes: optimizedAudit.uniquePostcodes,
+    baselineDuplicatePostcodeStops: baselineAudit.duplicatePostcodeStops,
+    optimizedDuplicatePostcodeStops: optimizedAudit.duplicatePostcodeStops,
+    baselineDispatches: baselineTrips,
+    optimizedDispatches: optimizedTrips,
   };
 }
 
